@@ -32,7 +32,7 @@ public class AppVersion
     private Float ActualyVersion;
     private String WhatNews;
     private Boolean LoadSuccesses = false;
-    private String wpsInternalDate = "2018-05-12 22:22:32";
+    private String wpsInternalDate = "2020-01-12 21:00:00";
     private Settings mSettings;
 
     public AppVersion(Context _context)
