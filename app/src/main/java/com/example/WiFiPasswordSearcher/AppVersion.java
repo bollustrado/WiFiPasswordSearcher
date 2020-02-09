@@ -48,10 +48,10 @@ public class AppVersion
     {
         AlertDialog.Builder ad = new AlertDialog.Builder(activity);
 
-        ad.setTitle("New version " + ActualyVersion + " available!");
+        ad.setTitle(String.format(context.getString(R.string.dialog_title_update), ActualyVersion));
         ad.setMessage(WhatNews);
         ad.setCancelable(false);
-        ad.setPositiveButton("Download", new DialogInterface.OnClickListener() {
+        ad.setPositiveButton(context.getString(R.string.download), new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int arg1) {
                 mSettings.Reload();
                 String SERVER_URI = mSettings.AppSettings.getString(Settings.APP_SERVER_URI, context.getResources().getString(R.string.SERVER_URI_DEFAULT));
@@ -61,7 +61,7 @@ public class AppVersion
             }
         });
 
-        ad.setNegativeButton("Ask later", new DialogInterface.OnClickListener() {
+        ad.setNegativeButton(context.getString(R.string.ask_later), new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int arg1) {
             }
         });
@@ -129,7 +129,7 @@ public class AppVersion
         {
             if (showMessage)
             {
-                Toast t = Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT);
+                Toast t = Toast.makeText(context, context.getString(R.string.status_no_internet), Toast.LENGTH_SHORT);
                 t.show();
             }
             return true;
@@ -139,7 +139,7 @@ public class AppVersion
         {
             if (showMessage)
             {
-                Toast t = Toast.makeText(context, "Using latest version", Toast.LENGTH_SHORT);
+                Toast t = Toast.makeText(context, context.getString(R.string.toast_using_latest_version), Toast.LENGTH_SHORT);
                 t.show();
             }
             return true;

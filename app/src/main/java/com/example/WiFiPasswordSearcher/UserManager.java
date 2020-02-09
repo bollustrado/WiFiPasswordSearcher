@@ -14,6 +14,7 @@ import java.net.URL;
  * Created by пк on 20.12.2015.
  */
 public class UserManager {
+    private Context context;
     private Settings mSettings = null;
     private String APP_VERSION = "";
     private String API_READ_KEY = "";
@@ -56,15 +57,15 @@ public class UserManager {
         return "";
     }
 
-    public String GetErrorDesc(String error)
+    public String GetErrorDesc(String error, Context context)
     {
         if (error.equals("database"))
-            return "Database maintenance, try again later";
+            return context.getString(R.string.error_database_maintenance);
         if (error.equals("loginfail"))
-            return "Username or password incorrect";
+            return context.getString(R.string.error_incorrect_credentials);
         if (error.equals("form"))
-            return "Please fill required form fields";
-        return "Unknown Error: " + error;
+            return context.getString(R.string.error_form_fields);
+        return String.format(context.getString(R.string.unknown_error), error);
     }
 
 }

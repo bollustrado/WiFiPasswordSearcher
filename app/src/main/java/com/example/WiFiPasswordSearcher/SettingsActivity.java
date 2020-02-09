@@ -52,20 +52,20 @@ public class SettingsActivity extends Activity {
                     lay.setOrientation(LinearLayout.VERTICAL);
 
                     final EditText ebss = new EditText(SettingsActivity.this);
-                    ebss.setHint("Enter BSSID (11:22:33:44:55:66)");
+                    ebss.setHint(getString(R.string.hint_enter_bssid));
                     ebss.setInputType(InputType.TYPE_CLASS_TEXT);
                     lay.addView(ebss);
 
                     final EditText eess = new EditText(SettingsActivity.this);
-                    eess.setHint("Enter ESSID");
+                    eess.setHint(getString(R.string.hint_enter_essid));
                     eess.setInputType(InputType.TYPE_CLASS_TEXT);
                     lay.addView(eess);
 
                     AlertDialog.Builder alert = new AlertDialog.Builder(SettingsActivity.this);
-                    alert.setTitle("Enter network properties");
+                    alert.setTitle(getString(R.string.dialog_network_properties));
                     alert.setView(lay);
 
-                    alert.setPositiveButton("OK", new DialogInterface.OnClickListener()
+                    alert.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener()
                     {
                         @Override
                         public void onClick(DialogInterface dialog, int which)
@@ -82,7 +82,7 @@ public class SettingsActivity extends Activity {
                             startActivity(detailsActivityIntent);
                         }
                     });
-                    alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
+                    alert.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener()
                     {
                         @Override
                         public void onClick(DialogInterface dialog, int which)

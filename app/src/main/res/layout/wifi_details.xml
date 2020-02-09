@@ -53,7 +53,7 @@
 		<CheckBox
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:text="Enable signal peak monitor"
+			android:text="@string/checkbox_enable_peak_monitor"
 			android:id="@+id/chkbUseDetector"
 			android:layout_weight="0.03"/>
 
