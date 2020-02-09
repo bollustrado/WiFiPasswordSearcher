@@ -750,7 +750,7 @@ public class WPSActivity extends Activity
                 ShowMenu(BSSDWps, pin);
             }
         });
-        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
+        alert.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener()
         {
             @Override
             public void onClick(DialogInterface dialog, int which)
