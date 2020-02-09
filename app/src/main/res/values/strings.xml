@@ -68,6 +68,7 @@
     <string name="error_database_maintenance">Database maintenance, try again later</string>
     <string name="error_incorrect_credentials">Username or password incorrect</string>
     <string name="error_form_fields">Please fill required form fields</string>
+    <string name="error_cooldown">Account query time limitation, please wait 10 seconds</string>
     <string name="unknown_error">Unknown Error: %s</string>
     
     <!-- user strings -->

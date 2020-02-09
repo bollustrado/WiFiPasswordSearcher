@@ -86,7 +86,7 @@ public class UserInfoActivity extends Activity {
             }
 
             Nick = User.NickName;
-            Group = User.GetGroup();
+            Group = User.GetGroup(getApplicationContext());
         }
 
         txtLogin.setText(Nick);
