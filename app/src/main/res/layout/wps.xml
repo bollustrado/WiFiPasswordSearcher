@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
 	android:orientation="vertical"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
@@ -15,7 +16,7 @@
 		<Button
 			android:layout_height="wrap_content"
 			android:layout_width="wrap_content"
-			android:text="3WiFi Base"
+			android:text="@string/source_3wifi"
 			android:layout_weight="1.0"
 			android:onClick="btnwpsbaseclick"
 			android:id="@+id/baseButton"/>
@@ -23,7 +24,7 @@
 		<Button
 			android:layout_height="wrap_content"
 			android:layout_width="wrap_content"
-			android:text="Generate"
+			android:text="@string/source_local_generator"
 			android:layout_weight="1.0"
 			android:onClick="btnGenerate"
 			android:id="@+id/wpsButton1"/>
@@ -31,7 +32,7 @@
 		<Button
 			android:layout_height="wrap_content"
 			android:layout_width="wrap_content"
-			android:text="Local"
+			android:text="@string/source_local_database"
 			android:layout_weight="1.0"
 			android:onClick="btnLocalClick"
 			android:id="@+id/wpsButton2"/>
@@ -39,9 +40,10 @@
 		<Button
 			android:layout_height="wrap_content"
 			android:layout_width="50dp"
-			android:text="..."
+			android:text="…"
 			android:maxLines="1"
-			android:onClick="btnCustomPin"/>
+			android:onClick="btnCustomPin"
+			tools:ignore="HardcodedText" />
 
 	</LinearLayout>
 
@@ -54,9 +56,10 @@
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:textAppearance="?android:attr/textAppearanceLarge"
-		android:text="ESSD"
+		android:text="ESSID"
 		android:gravity="center_horizontal"
-		android:id="@+id/ESSDWpsTextView"/>
+		android:id="@+id/ESSDWpsTextView"
+		tools:ignore="HardcodedText" />
 
 	<TextView
 		android:layout_width="match_parent"
@@ -64,7 +67,8 @@
 		android:textAppearance="?android:attr/textAppearanceMedium"
 		android:text="00:00:00:00:00:00"
 		android:gravity="center_horizontal"
-		android:id="@+id/BSSDWpsTextView"/>
+		android:id="@+id/BSSDWpsTextView"
+		tools:ignore="HardcodedText" />
 
 	<TextView
 		android:layout_height="wrap_content"

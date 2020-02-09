@@ -13,7 +13,7 @@
 		android:layout_gravity="center_horizontal"
 		android:text="Login"
 		android:gravity="center_horizontal"
-		android:textSize="32dp"/>
+		android:textSize="32sp"/>
 
 	<TextView
 		android:layout_width="match_parent"
@@ -21,8 +21,8 @@
 		android:layout_marginLeft="4dp"
 		android:id="@+id/labRegDate"
 		android:textColor="#A0A0A0"
-		android:textSize="14dp"
-		android:text="Registration Date"/>
+		android:textSize="14sp"
+		android:text="@string/label_registration_date"/>
 
 	<TextView
 		android:layout_width="match_parent"
@@ -40,8 +40,8 @@
 		android:layout_marginLeft="4dp"
 		android:id="@+id/labGroup"
 		android:textColor="#A0A0A0"
-		android:textSize="14dp"
-		android:text="Access Level"/>
+		android:textSize="14sp"
+		android:text="@string/label_access_level"/>
 
 	<TextView
 		android:layout_width="match_parent"
@@ -63,14 +63,14 @@
 		<Button
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:text="Update"
+			android:text="@string/button_update"
 			android:onClick="btnUpdateOnClick"
 			android:focusable="true"/>
 
 		<Button
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:text="Revert"
+			android:text="@string/button_revert"
 			android:onClick="btnRevertOnClick"
 			android:id="@+id/btnRevert"/>
 

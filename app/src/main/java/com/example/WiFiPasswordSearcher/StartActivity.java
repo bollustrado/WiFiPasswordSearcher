@@ -98,7 +98,7 @@ public class StartActivity extends Activity {
             public void onClick(View v) {
                 final ProgressDialog dProccess = new ProgressDialog(StartActivity.this);
                 dProccess.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                dProccess.setMessage("Signing in...");
+                dProccess.setMessage(getResources().getString(R.string.status_signing_in));
                 dProccess.setCanceledOnTouchOutside(false);
                 dProccess.show();
 
@@ -234,7 +234,7 @@ public class StartActivity extends Activity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast t = Toast.makeText(getApplicationContext(), "No API keys received.", Toast.LENGTH_SHORT);
+                                Toast t = Toast.makeText(getApplicationContext(), getResources().getString(R.string.toast_no_api_keys), Toast.LENGTH_SHORT);
                                 t.show();
                             }
                         });
@@ -256,7 +256,7 @@ public class StartActivity extends Activity {
                 else
                 {
                     String error = Json.getString("error");
-                    final String errorDesc = User.GetErrorDesc(error);
+                    final String errorDesc = User.GetErrorDesc(error, this);
 
                     if (error != null) {
                         runOnUiThread(new Runnable() {
@@ -301,10 +301,10 @@ public class StartActivity extends Activity {
                     }
                 };
                 AlertDialog.Builder builder = new AlertDialog.Builder(StartActivity.this);
-                builder.setTitle("No internet connection")
-                    .setMessage("Do you want to work in offline mode?")
-                    .setPositiveButton("Yes", dialogClickListener)
-                    .setNegativeButton("No", dialogClickListener).show();
+                builder.setTitle(getResources().getString(R.string.status_no_internet))
+                    .setMessage(getResources().getString(R.string.dialog_work_offline))
+                    .setPositiveButton(getResources().getString(R.string.dialog_yes), dialogClickListener)
+                    .setNegativeButton(getResources().getString(R.string.dialog_no), dialogClickListener).show();
             }
         });
         return false;

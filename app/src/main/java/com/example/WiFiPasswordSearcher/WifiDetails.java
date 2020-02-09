@@ -297,7 +297,7 @@ public class WifiDetails extends Activity
             }
         }
 
-        final String sText = "Freq: " + (iFreq <= 0 ? "Unknown" : Freq + " MHz " + "(" + sDiap + ")");
+        final String sText = getString(R.string.label_freq) + (iFreq <= 0 ? "Unknown" : Freq + " MHz " + "(" + sDiap + ")");
 
         runOnUiThread(new Runnable() {
             @Override
@@ -323,7 +323,7 @@ public class WifiDetails extends Activity
             public void run() {
                 graphSeries.appendData(new DataPoint(iGraphPointCount, fSignal), true, 25);
                 iGraphPointCount++;
-                txtSignal.setText("Signal: " + fSignal + "%");
+                txtSignal.setText(getString(R.string.label_signal) + fSignal + "%");
             }
         });
     }
@@ -332,7 +332,7 @@ public class WifiDetails extends Activity
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                txtChannel.setText("Channel: " + (Channel <= 0 ? "N/A" : Channel));
+                txtChannel.setText(getString(R.string.label_channel) + (Channel <= 0 ? "N/A" : Channel));
             }
         });
     }

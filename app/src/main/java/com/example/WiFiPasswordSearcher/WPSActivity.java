@@ -33,6 +33,7 @@ public class WPSActivity extends Activity
 {
     private WebView mWebView;
     private WifiManager WifiMgr;
+    private static Context context;
 
     ArrayList<ItemWps> data = new ArrayList<ItemWps>();
     ArrayList<WPSPin> pins = new ArrayList<WPSPin>();
@@ -53,15 +54,14 @@ public class WPSActivity extends Activity
     private volatile boolean wpsReady = false;
     private String cachedPins = "";
 
-    private static final String[] listContextMenuItems = new String[]{
-            "Connect using WPS... (without root)",
-            "Copy this WPS PIN"
-    };
+    private static String[] listContextMenuItems = new String[2];
 
     public void onCreate(Bundle savedInstanceState) 
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.wps);
+        WPSActivity.context = getApplicationContext();
+        listContextMenuItems = context.getResources().getStringArray(R.array.menu_wps_pin);
 
         mDBHelper = new DatabaseHelper(this);
         try
@@ -113,9 +113,9 @@ public class WPSActivity extends Activity
                     wpsConnecting = true;
                     pd = new ProgressDialog(WPSActivity.this);
                     pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                    pd.setMessage("Connecting to the network...");
+                    pd.setMessage(getString(R.string.status_connecting_to_the_network));
                     pd.setCanceledOnTouchOutside(false);
-                    pd.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener()
+                    pd.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.cancel), new DialogInterface.OnClickListener()
                     {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -125,7 +125,7 @@ public class WPSActivity extends Activity
                             }
                             wpsConnecting = false;
                             dialog.dismiss();
-                            Toast.makeText(getApplicationContext(), "Connection cancelled", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), getString(R.string.toast_connection_canceled), Toast.LENGTH_SHORT).show();
                         }
                     });
                     pd.show();
@@ -137,7 +137,7 @@ public class WPSActivity extends Activity
                         return;
                     wpsConnecting = false;
                     pd.dismiss();
-                    Toast.makeText(getApplicationContext(), "Connected successfully!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getString(R.string.toast_connected_successfully), Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
@@ -146,45 +146,43 @@ public class WPSActivity extends Activity
                         return;
                     wpsConnecting = false;
                     pd.dismiss();
-                    String title = "An error occurred";
+                    String title = getString(R.string.dialog_title_error_occurred);
                     String errorMessage;
                     switch (reason) {
                         case 0: // Generic failure
                             if (wpsLastPin.isEmpty()) {
-                                title = "WPS connection failed";
-                                errorMessage = "Your device does not support entering <empty> pin via WPS. You could try again, or use root mode.";
+                                title = getString(R.string.dialog_title_wps_failed);
+                                errorMessage = getString(R.string.dialog_message_not_support_empty);
                             }
                             else {
-                                errorMessage = "Generic failure - something went wrong. Try turning your Wi-Fi interface off and on, then try again. If this doesn't help, try restarting your device.";
+                                errorMessage = getString(R.string.dialog_message_generic_failure);
                             }
                             break;
                         case 1: // In progress
-                            errorMessage = "Operation currently in progress.";
+                            errorMessage = getString(R.string.dialog_message_operation_in_progress);
                             break;
                         case 2: // Busy
-                            errorMessage = "Wi-Fi interface is busy.";
+                            errorMessage = getString(R.string.dialog_message_wifi_busy);
                             break;
                         case WifiManager.WPS_OVERLAP_ERROR:
-                            errorMessage = "Another WPS transaction is in progress.";
+                            errorMessage = getString(R.string.dialog_message_another_transaction);
                             break;
                         case WifiManager.WPS_WEP_PROHIBITED:
-                            errorMessage = "WEP encryption prohibited.";
+                            errorMessage = getString(R.string.dialog_message_wep_prohibited);
                             break;
                         case WifiManager.WPS_TKIP_ONLY_PROHIBITED:
-                            errorMessage = "TKIP-only encryption prohibited.";
+                            errorMessage = getString(R.string.dialog_message_tkip_prohibited);
                             break;
                         case WifiManager.WPS_AUTH_FAILURE:
-                            errorMessage = "Selected WPS PIN is not correct.";
+                            errorMessage = getString(R.string.dialog_message_wps_pin_incorrect);
                             break;
                         case WifiManager.WPS_TIMED_OUT:
-                            title = "WPS connection timeout";
-                            errorMessage = "The network did not respond " +
-                                    "due to low signal or some other reasons. " +
-                                    "You may try again.";
+                            title = getString(R.string.dialog_title_wps_timeout);
+                            errorMessage = getString(R.string.dialog_message_network_did_not_respond);
                             break;
                         default:
-                            title = "OH SHI*";
-                            errorMessage = "Unexpected error " + reason;
+                            title = getString(R.string.dialog_title_oh_shit);
+                            errorMessage = getString(R.string.unexpected_error) + reason;
                             break;
                     }
 
@@ -192,7 +190,7 @@ public class WPSActivity extends Activity
                     builder.setTitle(title)
                             .setMessage(errorMessage)
                             .setCancelable(false)
-                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
                                     dialog.dismiss();
                                 }
@@ -242,7 +240,7 @@ public class WPSActivity extends Activity
         String spin = pin;
         if (spin.length() == 0)
             spin = "<empty>";
-        dialogBuilder.setTitle("Selected pin: " + spin);
+        dialogBuilder.setTitle(getString(R.string.selected_pin) + spin);
 
         dialogBuilder.setItems(listContextMenuItems, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int item) {
@@ -251,7 +249,7 @@ public class WPSActivity extends Activity
                         if (!WifiMgr.isWifiEnabled())
                         {
                             Toast toast = Toast.makeText(getApplicationContext(),
-                                    "Wi-Fi interface is disabled", Toast.LENGTH_SHORT);
+                                    getString(R.string.toast_wifi_disabled), Toast.LENGTH_SHORT);
                             toast.show();
                             break;
                         }
@@ -268,10 +266,10 @@ public class WPSActivity extends Activity
                         else
                         {
                             AlertDialog.Builder builder = new AlertDialog.Builder(WPSActivity.this);
-                            builder.setTitle("Unsupported Android version")
-                                    .setMessage("This function requires Android 5.0 (Lollipop) with API 21 or higher. Please upgrade your system.")
+                            builder.setTitle(getString(R.string.dialog_title_unsupported_android))
+                                    .setMessage(getString(R.string.dialog_message_unsupported_android))
                                     .setCancelable(false)
-                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialog, int id) {
                                             dialog.dismiss();
                                         }
@@ -281,7 +279,7 @@ public class WPSActivity extends Activity
                         }
                         break;
                     case 1:
-                        Toast.makeText(getApplicationContext(), "Pin \"" + pin + "\" copied", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), String.format(getString(R.string.toast_pin_copied), pin), Toast.LENGTH_SHORT).show();
                         try
                         {
                             ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
@@ -303,7 +301,7 @@ public class WPSActivity extends Activity
         protected void onPreExecute()
         {
             super.onPreExecute();
-            pd = ProgressDialog.show(WPSActivity.this, "Please wait...", "Initializing...");
+            pd = ProgressDialog.show(WPSActivity.this, getString(R.string.status_please_wait), getString(R.string.status_initializing));
         }
 
         protected String doInBackground(String[] BSSDWps)
@@ -373,7 +371,7 @@ public class WPSActivity extends Activity
         protected void onPreExecute()
         {
             super.onPreExecute();
-            String msg = "Getting pins...";
+            String msg = getString(R.string.status_getting_pins);
 
             if (pd.isShowing())
             {
@@ -381,7 +379,7 @@ public class WPSActivity extends Activity
             }
             else
             {
-                pd = ProgressDialog.show(WPSActivity.this, "Please wait...", msg);
+                pd = ProgressDialog.show(WPSActivity.this, getString(R.string.status_please_wait), msg);
             }
         }
 
@@ -447,7 +445,7 @@ public class WPSActivity extends Activity
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast t = Toast.makeText(getApplicationContext(), "Please enter credentials", Toast.LENGTH_SHORT);
+                                    Toast t = Toast.makeText(getApplicationContext(), getString(R.string.toast_enter_credentials), Toast.LENGTH_SHORT);
                                     t.show();
                                 }
                             });
@@ -479,22 +477,22 @@ public class WPSActivity extends Activity
             Boolean toast = true;
             if (str.equals("http_error"))
             {
-                msg = "No internet connection";
+                msg = getString(R.string.status_no_internet);
                 toast = false;
             }
             else if (str.equals("json_error"))
             {
-                msg = "Connection failure";
+                msg = getString(R.string.connection_failure);
                 toast = false;
             }
             else if (str.equals("api_error"))
             {
-                msg = "Database failure";
+                msg = getString(R.string.toast_database_failure);
                 toast = false;
             }
             else if (data.isEmpty())
             {
-                msg = "No pins found";
+                msg = getString(R.string.toast_no_pins_found);
             }
             if (msg.length() > 0)
             {
@@ -503,7 +501,7 @@ public class WPSActivity extends Activity
             wpslist.setEnabled(msg.length() == 0);
 
             wpslist.setAdapter(new MyAdapterWps(WPSActivity.this, data));
-            if (toast) toastMessage("Selected source: 3WiFi Online WPS PIN");
+            if (toast) toastMessage(getString(R.string.selected_source) + "3WiFi Online WPS PIN");
         }
     }
 
@@ -619,7 +617,7 @@ public class WPSActivity extends Activity
         }
         wpslist.setEnabled(pins.size() > 0);
         wpslist.setAdapter(new MyAdapterWps(WPSActivity.this, data));
-        toastMessage("Selected source: WPS PIN Companion");
+        toastMessage(getString(R.string.selected_source) + "WPS PIN Companion");
     }
 
     private int findAlgoByPin(String pin)
@@ -725,24 +723,24 @@ public class WPSActivity extends Activity
         }
         catch (Exception e)
         {
-            data.add(new ItemWps(null, "No pins found", null, null));
+            data.add(new ItemWps(null, getString(R.string.toast_no_pins_found), null, null));
             wpslist.setEnabled(false);
         }
         wpslist.setAdapter(new MyAdapterWps(WPSActivity.this, data));
 
-        toastMessage("Selected source: WPA WPS TESTER");
+        toastMessage(getString(R.string.selected_source) + "WPA WPS TESTER");
     }
 
     public void btnCustomPin(View view)
     {
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setTitle("Enter your WPS PIN:");
+        alert.setTitle(getString(R.string.dialog_enter_custom_pin));
 
         final EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
         alert.setView(input);
 
-        alert.setPositiveButton("OK", new DialogInterface.OnClickListener()
+        alert.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener()
         {
             @Override
             public void onClick(DialogInterface dialog, int which)

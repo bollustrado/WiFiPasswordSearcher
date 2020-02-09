@@ -64,9 +64,9 @@ public class UserInfoActivity extends Activity {
             TextView lGroup = (TextView) findViewById(R.id.labGroup);
 
             Nick = "WPS PIN Companion";
-            lReg.setText("Last Updated");
+            lReg.setText(getString(R.string.label_last_updated));
             date = updater.wpsCompanionGetDate();
-            lGroup.setText("File Size");
+            lGroup.setText(getString(R.string.label_file_size));
             long size = updater.wpsCompanionGetSize();
             Group = updater.readableFileSize(size);
         }
@@ -105,7 +105,7 @@ public class UserInfoActivity extends Activity {
             super.onPreExecute();
             pd = new ProgressDialog(UserInfoActivity.this);
             pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            pd.setMessage("Updating component...");
+            pd.setMessage(getString(R.string.status_updating));
             pd.setCanceledOnTouchOutside(false);
             pd.show();
         }
@@ -143,15 +143,15 @@ public class UserInfoActivity extends Activity {
                 txtGroup.setText(updater.readableFileSize(updater.wpsCompanionGetSize()));
                 Button btnRevert = (Button) findViewById(R.id.btnRevert);
                 btnRevert.setEnabled(!updater.wpsCompanionInternal());
-                msg = "Update successful!";
+                msg = getString(R.string.toast_updated_successful);
             }
             else if (str.length() == 0)
             {
-                msg = "No internet connection";
+                msg = getString(R.string.status_no_internet);
             }
             else
             {
-                msg = "Update failed";
+                msg = getString(R.string.toast_update_failed);
             }
             toast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT);
             toast.show();
@@ -176,7 +176,7 @@ public class UserInfoActivity extends Activity {
             txtGroup.setText(updater.readableFileSize(updater.wpsCompanionGetSize()));
             v.setEnabled(!updater.wpsCompanionInternal());
             Toast toast = Toast.makeText(getApplicationContext(),
-                    "Reverted to initial state", Toast.LENGTH_SHORT);
+                    getString(R.string.toast_reverted_to_init_state), Toast.LENGTH_SHORT);
             toast.show();
         }
     }

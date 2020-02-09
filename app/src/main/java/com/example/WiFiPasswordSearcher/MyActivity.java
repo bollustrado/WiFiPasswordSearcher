@@ -239,15 +239,15 @@ class WiFiListSimpleAdapter extends SimpleAdapter
             {
                 String WPS = wpss.get(i);
                 if (WPS.isEmpty()) {
-                    keysList[i] = "Key: " + DeleteInTextTags(keys.get(i));
+                    keysList[i] = context.getString(R.string.dialog_choose_key_key) + DeleteInTextTags(keys.get(i));
                 }
                 else {
-                    keysList[i] = "Key: " + DeleteInTextTags(keys.get(i)) + " WPS: " + DeleteInTextTags(WPS);
+                    keysList[i] = context.getString(R.string.dialog_choose_key_key) + DeleteInTextTags(keys.get(i)) + context.getString(R.string.dialog_choose_key_wps) + DeleteInTextTags(WPS);
                 }
             }
 
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
-            dialogBuilder.setTitle("Choose key:");
+            dialogBuilder.setTitle(context.getString(R.string.dialog_choose_key));
             dialogBuilder.setItems(keysList, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int item) {
                     passwordChoose(rowId, item);
@@ -330,14 +330,7 @@ public class MyActivity extends Activity {
 
     private static WiFiListSimpleAdapter adapter = null;
 
-    private static final String[] listContextMenuItems = new String[]{
-        "Network details",
-        "Copy ESSID",
-        "Copy BSSID",
-        "Copy network key",
-        "Store network profile",
-        "Generate WPS PIN"
-    };
+    private String[] listContextMenuItems = new String[6];
 
     public void btnRefreshOnClick(View v)
     {
@@ -382,7 +375,7 @@ public class MyActivity extends Activity {
 
             final ProgressDialog dProccess = new ProgressDialog(MyActivity.this);
             dProccess.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            dProccess.setMessage("Searching in 3WiFi...");
+            dProccess.setMessage(getResources().getString(R.string.status_searching));
             dProccess.setCanceledOnTouchOutside(false);
             btnCheckFromBase.setEnabled(false);
             dProccess.show();
@@ -473,7 +466,7 @@ public class MyActivity extends Activity {
                             if (WiFiKeys.isEmpty())
                             {
                                 Toast toast = Toast.makeText(getApplicationContext(),
-                                        "No data here! Click 3WiFi button to fetch some keys.",
+                                        getString(R.string.toast_no_data),
                                         Toast.LENGTH_LONG);
                                 toast.show();
                                 break;
@@ -484,7 +477,7 @@ public class MyActivity extends Activity {
                             if (apdata.Keys.size() < 1)
                             {
                                 Toast toast = Toast.makeText(getApplicationContext(),
-                                        "Key not found! Nothing to copy", Toast.LENGTH_SHORT);
+                                        getString(R.string.toast_key_not_found), Toast.LENGTH_SHORT);
                                 toast.show();
                                 return;
                             }
@@ -497,7 +490,7 @@ public class MyActivity extends Activity {
                             if (WiFiKeys.isEmpty())
                             {
                                 Toast toast = Toast.makeText(getApplicationContext(),
-                                        "No data here! Click 3WiFi button to fetch some keys.",
+                                        getString(R.string.toast_no_data),
                                         Toast.LENGTH_LONG);
                                 toast.show();
                                 break;
@@ -507,7 +500,7 @@ public class MyActivity extends Activity {
                             if (apdata == null || apdata.Keys.size() < 1)
                             {
                                 Toast toast = Toast.makeText(getApplicationContext(),
-                                        "Key not found!", Toast.LENGTH_SHORT);
+                                        getString(R.string.toast_key_not_found), Toast.LENGTH_SHORT);
                                 toast.show();
                                 break;
                             }
@@ -515,7 +508,7 @@ public class MyActivity extends Activity {
                             if (!WifiMgr.isWifiEnabled())
                             {
                                 Toast toast = Toast.makeText(getApplicationContext(),
-                                        "Wi-Fi interface is disabled", Toast.LENGTH_SHORT);
+                                        getString(R.string.toast_wifi_disabled), Toast.LENGTH_SHORT);
                                 toast.show();
                                 break;
                             }
@@ -547,10 +540,10 @@ public class MyActivity extends Activity {
                                     }
                                 };
                                 AlertDialog.Builder builder = new AlertDialog.Builder(MyActivity.this);
-                                builder.setTitle("Are you sure?")
-                                    .setMessage(String.format("Network \"%s\" is already stored %d times.", scanResult.SSID, cnt))
-                                    .setPositiveButton("Yes", dialogClickListener)
-                                    .setNegativeButton("No", dialogClickListener).show();
+                                builder.setTitle(getString(R.string.dialog_are_you_sure))
+                                    .setMessage(String.format(getString(R.string.dialog_already_stored), scanResult.SSID, cnt))
+                                    .setPositiveButton(getString(R.string.dialog_yes), dialogClickListener)
+                                    .setNegativeButton(getString(R.string.dialog_no), dialogClickListener).show();
                             }
                             else
                                 addNetworkProfile(scanResult, apdata);
@@ -575,10 +568,10 @@ public class MyActivity extends Activity {
                                     }
                                 };
                                 AlertDialog.Builder builder = new AlertDialog.Builder(MyActivity.this);
-                                builder.setTitle("Are you sure?")
-                                    .setMessage(String.format("Network \"%s\" is not WPS enabled.", scanResult.SSID))
-                                    .setPositiveButton("Yes", dialogClickListener)
-                                    .setNegativeButton("No", dialogClickListener).show();
+                                builder.setTitle(getString(R.string.dialog_are_you_sure))
+                                    .setMessage(String.format(getString(R.string.dialog_wps_disabled), scanResult.SSID))
+                                    .setPositiveButton(getString(R.string.dialog_yes), dialogClickListener)
+                                    .setNegativeButton(getString(R.string.dialog_no), dialogClickListener).show();
                                 break;
                             }
                             wpsGenStart(ESSDWps, BSSDWps);
@@ -588,7 +581,7 @@ public class MyActivity extends Activity {
                     if (NeedToast)
                     {
                         Toast toast = Toast.makeText(getApplicationContext(),
-                                "Copied to clipboard", Toast.LENGTH_SHORT);
+                                getString(R.string.toast_copied), Toast.LENGTH_SHORT);
                         toast.show();
                     }
 
@@ -643,19 +636,19 @@ public class MyActivity extends Activity {
         if (netId > -1)
         {
             toast = Toast.makeText(getApplicationContext(),
-                    "Network profile added!", Toast.LENGTH_SHORT);
+                    getString(R.string.toast_network_stored), Toast.LENGTH_SHORT);
         }
         else
         {
             if (WifiMgr.isWifiEnabled())
             {
                 toast = Toast.makeText(getApplicationContext(),
-                        "Failed to add network profile", Toast.LENGTH_SHORT);
+                        getString(R.string.toast_failed_to_store), Toast.LENGTH_SHORT);
             }
             else
             {
                 toast = Toast.makeText(getApplicationContext(),
-                        "Wi-Fi interface is disabled", Toast.LENGTH_SHORT);
+                        getString(R.string.toast_wifi_disabled), Toast.LENGTH_SHORT);
             }
         }
         toast.show();
@@ -679,7 +672,7 @@ public class MyActivity extends Activity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Toast t = Toast.makeText(getApplicationContext(), "Please enter credentials", Toast.LENGTH_SHORT);
+                    Toast t = Toast.makeText(getApplicationContext(), getString(R.string.toast_enter_credentials), Toast.LENGTH_SHORT);
                     t.show();
                 }
             });
@@ -695,6 +688,7 @@ public class MyActivity extends Activity {
         setContentView(R.layout.main);
         ActionBar actionBar = getActionBar();
         actionBar.hide();
+        listContextMenuItems = getResources().getStringArray(R.array.menu_network);
 
         if (android.os.Build.VERSION.SDK_INT > 9) {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -813,13 +807,13 @@ public class MyActivity extends Activity {
         if (!WifiMgr.isWifiEnabled())
         {
             Toast toast = Toast.makeText(this,
-                    "Wi-Fi interface is disabled", Toast.LENGTH_SHORT);
+                    getString(R.string.toast_wifi_disabled), Toast.LENGTH_SHORT);
             toast.show();
             return;
         }
         final ProgressDialog dProccess = new ProgressDialog(MyActivity.this);
         dProccess.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        dProccess.setMessage("Scanning networks...");
+        dProccess.setMessage(getString(R.string.status_scanning));
         dProccess.setCanceledOnTouchOutside(false);
         dProccess.show();
 
@@ -867,7 +861,7 @@ public class MyActivity extends Activity {
                 btnCheckFromBase.setEnabled(true);
 
                 Toast toast = Toast.makeText(getApplicationContext(),
-                        "Scan is complete!", Toast.LENGTH_SHORT);
+                        getString(R.string.toast_scan_complete), Toast.LENGTH_SHORT);
                 toast.show();
 
                 unregisterReceiver(this);
@@ -937,7 +931,7 @@ public class MyActivity extends Activity {
                 {
                     // API failure
                     String error = json.getString("error");
-                    final String errorDesc = User.GetErrorDesc(error);
+                    final String errorDesc = User.GetErrorDesc(error, this);
 
                     if (error != null) {
                         if (error.equals("loginfail"))
@@ -978,7 +972,7 @@ public class MyActivity extends Activity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast t = Toast.makeText(getApplicationContext(), "Database failure", Toast.LENGTH_SHORT);
+                        Toast t = Toast.makeText(getApplicationContext(), getString(R.string.toast_database_failure), Toast.LENGTH_SHORT);
                         t.show();
                         btnCheckFromBase.setEnabled(true);
                     }
@@ -992,7 +986,7 @@ public class MyActivity extends Activity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Toast t = Toast.makeText(getApplicationContext(), "No internet connection", Toast.LENGTH_SHORT);
+                    Toast t = Toast.makeText(getApplicationContext(), getString(R.string.status_no_internet), Toast.LENGTH_SHORT);
                     t.show();
                     btnCheckFromBase.setEnabled(true);
                 }
