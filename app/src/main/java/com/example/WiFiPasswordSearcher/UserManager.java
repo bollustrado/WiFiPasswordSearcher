@@ -38,21 +38,21 @@ public class UserManager {
         Level = mSettings.AppSettings.getInt(Settings.USER_GROUP, -1);
     }
 
-    public String GetGroup()
+    public String GetGroup(Context context)
     {
-        return GetTextGroup(Level);
+        return GetTextGroup(Level,context);
     }
 
-    public String GetTextGroup(Integer Level)
+    public String GetTextGroup(Integer Level, Context context)
     {
         switch (Level)
         {
-            case -2: return "Banned";
-            case -1: return "No logged";
-            case 0: return "Guest";
-            case 1: return "User";
-            case 2: return "Developer";
-            case 3: return "Administrator";
+            case -2: return context.getString(R.string.access_level_banned);
+            case -1: return context.getString(R.string.access_level_no_logged);
+            case 0: return context.getString(R.string.access_level_guest);
+            case 1: return context.getString(R.string.access_level_user);
+            case 2: return context.getString(R.string.access_level_developer);
+            case 3: return context.getString(R.string.access_level_admin);
         }
         return "";
     }
@@ -65,6 +65,8 @@ public class UserManager {
             return context.getString(R.string.error_incorrect_credentials);
         if (error.equals("form"))
             return context.getString(R.string.error_form_fields);
+        if (error.equals("cooldown"))
+            return context.getString(R.string.error_cooldown);
         return String.format(context.getString(R.string.unknown_error), error);
     }
 

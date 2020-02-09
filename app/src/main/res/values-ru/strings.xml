@@ -128,4 +128,5 @@
     <string name="error_form_fields">Пожалуйста, заполните необходимые поля формы</string>
     <string name="error_incorrect_credentials">Неверное имя пользователя или пароль</string>
     <string name="unknown_error">Неизвестная ошибка: %s</string>
+    <string name="error_cooldown">Действует ограничение по времени, подождите 10 секунд</string>
 </resources>
