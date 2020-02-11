@@ -346,7 +346,7 @@ public class MyActivity extends Activity {
             new int[]{R.id.ESSID, R.id.BSSID});
         WiFiList.setAdapter(adapter);
         ScanAndShowWiFi();
-    };
+    }
 
     private View.OnClickListener btnSettingsOnClick = new View.OnClickListener()
     {
@@ -809,6 +809,27 @@ public class MyActivity extends Activity {
             Toast toast = Toast.makeText(this,
                     getString(R.string.toast_wifi_disabled), Toast.LENGTH_SHORT);
             toast.show();
+            return;
+        }
+        if ((android.os.Build.VERSION.SDK_INT > 27) && !LocationMgr.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            final String action = android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS;
+            final AlertDialog.Builder builder = new AlertDialog.Builder(MyActivity.this);
+            builder.setMessage(getString(R.string.dialog_message_location_disabled))
+                    .setPositiveButton(getString(R.string.button_location_settings),
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface d, int id) {
+                                    MyActivity.this.startActivity(new Intent(action));
+                                    d.dismiss();
+                                }
+                            })
+                    .setNegativeButton(getString(R.string.cancel),
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface d, int id) {
+                                    d.cancel();
+                                }
+                            });
+            AlertDialog alert = builder.create();
+            alert.show();
             return;
         }
         final ProgressDialog dProccess = new ProgressDialog(MyActivity.this);

@@ -117,7 +117,7 @@
     <string name="toast_connected_successfully">Connected successfully!</string>
     <string name="dialog_title_error_occurred">An error occurred</string>
     <string name="dialog_title_wps_failed">WPS connection failed</string>
-    <string name="dialog_message_not_support_empty">Your device does not support entering &lt;empty&lt; pin via WPS. You could try again, or use root mode.</string>
+    <string name="dialog_message_not_support_empty">Your device does not support entering &lt;empty&gt; pin via WPS. You could try again, or use root mode.</string>
     <string name="dialog_message_generic_failure">Generic failure — something went wrong. Try turning your Wi-Fi interface off and on, then try again. If this doesn\'t help, try restarting your device.</string>
     <string name="dialog_message_operation_in_progress">Operation currently in progress.</string>
     <string name="dialog_message_wifi_busy">Wi-Fi interface is busy.</string>
@@ -157,4 +157,6 @@
     <string name="download">Download</string>
     <string name="ask_later">Ask later</string>
     <string name="toast_using_latest_version">Using latest version"</string>
+    <string name="dialog_message_location_disabled">On Android 9 and higher you must enable location to scan networks. Enable now?</string>
+    <string name="button_location_settings">Open settings</string>
 </resources>

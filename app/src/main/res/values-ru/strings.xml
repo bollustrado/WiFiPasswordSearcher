@@ -129,4 +129,6 @@
     <string name="error_incorrect_credentials">Неверное имя пользователя или пароль</string>
     <string name="unknown_error">Неизвестная ошибка: %s</string>
     <string name="error_cooldown">Действует ограничение по времени, подождите 10 секунд</string>
+    <string name="button_location_settings">Открыть настройки</string>
+    <string name="dialog_message_location_disabled">В Android 9 и выше необходимо включить службы местоположения, чтобы сканировать сети. Включить сейчас?</string>
 </resources>
