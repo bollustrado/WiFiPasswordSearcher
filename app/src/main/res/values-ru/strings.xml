@@ -99,7 +99,7 @@
     <string name="dialog_title_wps_failed">Сбой подключения WPS</string>
     <string name="dialog_title_wps_timeout">Тайм-аут соединения WPS</string>
     <string name="selected_pin">"Выбранный пин-код: "</string>
-    <string name="selected_source">"Выбран источник: "</string>
+    <string name="selected_source">Выбран источник: %s</string>
     <string name="status_connecting_to_the_network">Подключение к сети…</string>
     <string name="status_getting_pins">Получение пин-кодов…</string>
     <string name="status_please_wait">Пожалуйста подождите…</string>
@@ -129,6 +129,7 @@
     <string name="error_incorrect_credentials">Неверное имя пользователя или пароль</string>
     <string name="unknown_error">Неизвестная ошибка: %s</string>
     <string name="error_cooldown">Действует ограничение по времени, подождите 10 секунд</string>
-    <string name="button_location_settings">Открыть настройки</string>
+    <string name="button_open_settings">Открыть настройки</string>
     <string name="dialog_message_location_disabled">В Android 9 и выше необходимо включить службы местоположения, чтобы сканировать сети. Включить сейчас?</string>
+    <string name="dialog_message_please_enable_wifi">Необходимо включить Wi-Fi, чтобы сканировать сети</string>
 </resources>
