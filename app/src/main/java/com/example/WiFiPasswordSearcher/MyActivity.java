@@ -332,6 +332,9 @@ public class MyActivity extends Activity {
 
     private String[] listContextMenuItems = new String[6];
 
+    static final int WIFI_ENABLE_REQUEST = 1;
+    static final int LOCATION_ENABLE_REQUEST = 2;
+
     public void btnRefreshOnClick(View v)
     {
         if (ScanInProcess) return;
@@ -665,6 +668,13 @@ public class MyActivity extends Activity {
         super.onRestoreInstanceState(savedInstanceState);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if ((requestCode == WIFI_ENABLE_REQUEST) || (requestCode == LOCATION_ENABLE_REQUEST)) {
+            ScanAndShowWiFi();
+        }
+    }
+
     public void ApiDataTest()
     {
         if (!API_KEYS_VALID)
@@ -804,30 +814,43 @@ public class MyActivity extends Activity {
             catch (Exception e) {}
             return;
         }
-        if (!WifiMgr.isWifiEnabled())
-        {
-            Toast toast = Toast.makeText(this,
-                    getString(R.string.toast_wifi_disabled), Toast.LENGTH_SHORT);
-            toast.show();
+        if (!WifiMgr.isWifiEnabled()) {
+            final String action = android.provider.Settings.ACTION_WIFI_SETTINGS;
+            final AlertDialog.Builder builder = new AlertDialog.Builder(MyActivity.this);
+            builder.setTitle(getString(R.string.toast_wifi_disabled));
+            builder.setMessage(getString(R.string.dialog_message_please_enable_wifi));
+            builder.setPositiveButton(getString(R.string.button_open_settings),
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface d, int id) {
+                            MyActivity.this.startActivityForResult(new Intent(action), WIFI_ENABLE_REQUEST);
+                            d.dismiss();
+                        }
+                    }).setNegativeButton(getString(R.string.cancel),
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface d, int id) {
+                            d.cancel();
+                        }
+                    });
+            AlertDialog alert = builder.create();
+            alert.show();
             return;
         }
         if ((android.os.Build.VERSION.SDK_INT > 27) && !LocationMgr.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             final String action = android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS;
             final AlertDialog.Builder builder = new AlertDialog.Builder(MyActivity.this);
-            builder.setMessage(getString(R.string.dialog_message_location_disabled))
-                    .setPositiveButton(getString(R.string.button_location_settings),
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface d, int id) {
-                                    MyActivity.this.startActivity(new Intent(action));
-                                    d.dismiss();
-                                }
-                            })
-                    .setNegativeButton(getString(R.string.cancel),
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface d, int id) {
-                                    d.cancel();
-                                }
-                            });
+            builder.setMessage(getString(R.string.dialog_message_location_disabled));
+            builder.setPositiveButton(getString(R.string.button_open_settings),
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface d, int id) {
+                            MyActivity.this.startActivityForResult(new Intent(action), LOCATION_ENABLE_REQUEST);
+                            d.dismiss();
+                        }
+                    }).setNegativeButton(getString(R.string.cancel),
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface d, int id) {
+                            d.cancel();
+                        }
+                    });
             AlertDialog alert = builder.create();
             alert.show();
             return;

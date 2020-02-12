@@ -501,7 +501,7 @@ public class WPSActivity extends Activity
             wpslist.setEnabled(msg.length() == 0);
 
             wpslist.setAdapter(new MyAdapterWps(WPSActivity.this, data));
-            if (toast) toastMessage(getString(R.string.selected_source) + "3WiFi Online WPS PIN");
+            if (toast) toastMessage(String.format(getString(R.string.selected_source), "3WiFi Online WPS PIN"));
         }
     }
 
@@ -617,7 +617,7 @@ public class WPSActivity extends Activity
         }
         wpslist.setEnabled(pins.size() > 0);
         wpslist.setAdapter(new MyAdapterWps(WPSActivity.this, data));
-        toastMessage(getString(R.string.selected_source) + "WPS PIN Companion");
+        toastMessage(String.format(getString(R.string.selected_source), "WPS PIN Companion"));
     }
 
     private int findAlgoByPin(String pin)
@@ -728,7 +728,7 @@ public class WPSActivity extends Activity
         }
         wpslist.setAdapter(new MyAdapterWps(WPSActivity.this, data));
 
-        toastMessage(getString(R.string.selected_source) + "WPA WPS TESTER");
+        toastMessage(String.format(getString(R.string.selected_source), "WPA WPS TESTER"));
     }
 
     public void btnCustomPin(View view)

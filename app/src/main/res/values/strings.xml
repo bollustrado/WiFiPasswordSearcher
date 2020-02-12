@@ -137,7 +137,7 @@
     <string name="status_please_wait">Please wait…</string>
     <string name="connection_failure">Connection failure</string>
     <string name="toast_no_pins_found">No pins found</string>
-    <string name="selected_source">Selected source: </string>
+    <string name="selected_source">Selected source: %s</string>
     <string name="status_initializing">Initializing…</string>
     <string name="dialog_enter_custom_pin">Enter your WPS PIN</string>
 
@@ -157,6 +157,9 @@
     <string name="download">Download</string>
     <string name="ask_later">Ask later</string>
     <string name="toast_using_latest_version">Using latest version"</string>
+
+    <!-- Other strings -->
     <string name="dialog_message_location_disabled">On Android 9 and higher you must enable location to scan networks. Enable now?</string>
-    <string name="button_location_settings">Open settings</string>
+    <string name="button_open_settings">Open settings</string>
+    <string name="dialog_message_please_enable_wifi">You must enable Wi-Fi to scan networks</string>
 </resources>
