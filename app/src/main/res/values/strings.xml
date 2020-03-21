@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">3WiFI Locator</string>
+    <string name="app_name">3WiFi Locator</string>
     <string name="app_version" translatable="false">0.6</string>
     <string name="SERVER_URI_DEFAULT" translatable="false">https://3wifi.stascorp.com</string>
     <string name="DEFAULT_DATE_FORMAT" translatable="false">yyyy-MM-dd HH:mm:ss</string>
