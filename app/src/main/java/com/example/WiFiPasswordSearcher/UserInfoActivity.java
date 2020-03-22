@@ -1,8 +1,10 @@
 package com.example.WiFiPasswordSearcher;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -19,6 +21,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Created by пк on 20.12.2015.
@@ -30,6 +33,7 @@ public class UserInfoActivity extends Activity {
     public TextView txtGroup = null;
     private String info;
 
+    @TargetApi(Build.VERSION_CODES.KITKAT)
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.user);
@@ -37,7 +41,7 @@ public class UserInfoActivity extends Activity {
         Settings mSettings = new Settings(getApplicationContext());
 
         try {
-            info = getIntent().getExtras().getString("showInfo");
+            info = Objects.requireNonNull(getIntent().getExtras()).getString("showInfo");
         }
         catch (Exception e) {
             info = "user";
@@ -97,7 +101,6 @@ public class UserInfoActivity extends Activity {
     private class AsyncWpsUpdater extends AsyncTask<String, Void, String>
     {
         private ProgressDialog pd;
-        private Toast toast;
 
         @Override
         protected void onPreExecute()
@@ -124,7 +127,7 @@ public class UserInfoActivity extends Activity {
             {
                 str = hc.execute(http, res);
             }
-            catch (Exception e) {}
+            catch (Exception ignored) {}
 
             return str;
         }
@@ -153,7 +156,7 @@ public class UserInfoActivity extends Activity {
             {
                 msg = getString(R.string.toast_update_failed);
             }
-            toast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT);
+            Toast toast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT);
             toast.show();
         }
     }

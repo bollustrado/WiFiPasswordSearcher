@@ -31,7 +31,7 @@ public class AboutActivity extends Activity
             html = "";
         }
 
-        int backColor = getThemeColor(android.R.attr.colorBackground);
+        int backColor = getThemeColor();
         int textColor = getResources().getColor(isColorDark(backColor) ? android.R.color.secondary_text_dark : android.R.color.secondary_text_light);
         html = html.replace("#000;", colorToCSS(backColor));
         html = html.replace("#fff;", colorToCSS(textColor));
@@ -47,11 +47,11 @@ public class AboutActivity extends Activity
         String str = String.format("%06x", color & 0xFFFFFF);
         return '#' + str + ";";
     }
-    private int getThemeColor(int prop)
+    private int getThemeColor()
     {
         int color = 0;
         TypedValue v = new TypedValue();
-        getTheme().resolveAttribute(prop, v, true);
+        getTheme().resolveAttribute(android.R.attr.colorBackground, v, true);
         if (v.type >= TypedValue.TYPE_FIRST_COLOR_INT && v.type <= TypedValue.TYPE_LAST_COLOR_INT)
         {
             color = v.data;

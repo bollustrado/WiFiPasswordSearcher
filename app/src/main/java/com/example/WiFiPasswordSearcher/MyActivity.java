@@ -38,18 +38,18 @@ import java.util.Map;
 class APData
 {
     public String BSSID;
-    public ArrayList<String> Keys;
-    public ArrayList<Boolean> Generated;
-    public ArrayList<String> WPS;
+    ArrayList<String> Keys;
+    ArrayList<Boolean> Generated;
+    ArrayList<String> WPS;
 }
 
 class MyScanResult
 {
     public String BSSID;
-    public String SSID;
-    public int frequency;
-    public int level;
-    public String capabilities;
+    String SSID;
+    int frequency;
+    int level;
+    String capabilities;
 }
 
 class WiFiListSimpleAdapter extends SimpleAdapter
@@ -58,7 +58,7 @@ class WiFiListSimpleAdapter extends SimpleAdapter
     private List DataList;
     private static HashMap<String, Drawable> SvgImageCache = new HashMap<>();
 
-    public WiFiListSimpleAdapter(Context _context, List<? extends Map<String, ?>> data, int resource, String[] from, int[] to) {
+    WiFiListSimpleAdapter(Context _context, List<? extends Map<String, ?>> data, int resource, String[] from, int[] to) {
         super(_context, data, resource, from, to);
         context = _context;
         DataList = data;
@@ -314,8 +314,6 @@ public class MyActivity extends Activity {
     public static ListView WiFiList = null;
     private Button btnRefresh = null;
     private Button btnCheckFromBase = null;
-    private Button btnStartGPSLog = null;
-    private ImageButton btnSettings = null;
     private static List<MyScanResult> WiFiScanResult = null;
     public static ArrayList<APData> WiFiKeys = new ArrayList<>();
 
@@ -426,15 +424,15 @@ public class MyActivity extends Activity {
 
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(MyActivity.this);
 
-            dialogBuilder.setTitle(txtESSID.getText());
-            final String ESSDWps = txtESSID.getText().toString();
-            final String BSSDWps = txtBSSID.getText().toString();
+            dialogBuilder.setTitle(txtESSID != null ? txtESSID.getText() : "");
+            final String ESSDWps = txtESSID != null ? txtESSID.getText().toString() : "";
+            final String BSSDWps = txtBSSID != null ? txtBSSID.getText().toString() : "";
 
             dialogBuilder.setItems(listContextMenuItems, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int item)
                 {
                     APData apdata;
-                    Boolean NeedToast = false;
+                    boolean NeedToast = false;
 
                     MyScanResult scanResult = WiFiScanResult.get((int)id);
 
@@ -455,13 +453,13 @@ public class MyActivity extends Activity {
                         case 1:         // Copy
                             TextView txtBSSID = GetDataRowsFromLinLay(lastWiFiClickItem, "ESSID");
                             ClipData dataClip;
-                            dataClip = ClipData.newPlainText("text", txtBSSID.getText());
+                            dataClip = ClipData.newPlainText("text", txtBSSID != null ? txtBSSID.getText() : "");
                             sClipboard.setPrimaryClip(dataClip);
                             NeedToast = true;
                             break;
                         case 2:         // Copy BSSID
                             TextView txtESSID = GetDataRowsFromLinLay(lastWiFiClickItem, "BSSID");
-                            dataClip = ClipData.newPlainText("text", txtESSID.getText());
+                            dataClip = ClipData.newPlainText("text", txtESSID != null ? txtESSID.getText() : "");
                             sClipboard.setPrimaryClip(dataClip);
                             NeedToast = true;
                             break;
@@ -700,10 +698,8 @@ public class MyActivity extends Activity {
         actionBar.hide();
         listContextMenuItems = getResources().getStringArray(R.array.menu_network);
 
-        if (android.os.Build.VERSION.SDK_INT > 9) {
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-        }
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
         APP_VERSION = getResources().getString(R.string.app_version);
 
         mSettings = new Settings(getApplicationContext());
@@ -717,8 +713,8 @@ public class MyActivity extends Activity {
         WiFiList = (ListView) findViewById(R.id.WiFiList);
         btnRefresh = (Button) findViewById(R.id.btnRefresh);
         btnCheckFromBase = (Button) findViewById(R.id.btnCheckFromBase);
-        btnSettings = (ImageButton) findViewById(R.id.btnSettings);
-        btnStartGPSLog = (Button) findViewById(R.id.btnStartGPSLog);
+        ImageButton btnSettings = (ImageButton) findViewById(R.id.btnSettings);
+        Button btnStartGPSLog = (Button) findViewById(R.id.btnStartGPSLog);
 
         WifiMgr = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         LocationMgr = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -754,66 +750,6 @@ public class MyActivity extends Activity {
         };
         WiFiScanResult = null;
         adapter = null;
-        if (false)
-        {
-            try
-            {
-                List<MyScanResult> results = new ArrayList<>();
-                MyScanResult sc;
-                sc = new MyScanResult();
-                sc.BSSID = "00:0E:8F:D3:5E:9C";
-                sc.SSID = "beeline 49";
-                sc.capabilities = "WPA WPA2 WPS";
-                sc.level = -58;
-                sc.frequency = 2440;
-                results.add(sc);
-
-                sc = new MyScanResult();
-                sc.BSSID = "64:D9:54:39:15:6B";
-                sc.SSID = "MGTS_ADSL_7003";
-                sc.capabilities = "WPA2 WPS";
-                sc.level = -65;
-                sc.frequency = 2460;
-                results.add(sc);
-
-                sc = new MyScanResult();
-                sc.BSSID = "2C:AB:25:06:49:CB";
-                sc.SSID = "beeline-50";
-                sc.capabilities = "WPA WPS";
-                sc.level = -70;
-                sc.frequency = 2420;
-                results.add(sc);
-
-                ArrayList<HashMap<String, String>> list = new ArrayList<>();
-                HashMap<String, String> ElemWiFi;
-                Collections.sort(results, comparator);
-                WiFiScanResult = results;
-
-                for (MyScanResult result : results) {
-                    ElemWiFi = new HashMap<>();
-                    ElemWiFi.put("ESSID", result.SSID);
-                    ElemWiFi.put("BSSID", result.BSSID.toUpperCase());
-                    ElemWiFi.put("KEY", "*[color:gray]*[no data]");
-                    ElemWiFi.put("WPS", "*[color:gray]*[no data]");
-                    ElemWiFi.put("SIGNAL", getStrSignal(result.level));
-                    ElemWiFi.put("KEYSCOUNT", "*[color:gray]*0");
-                    ElemWiFi.put("CAPABILITY", result.capabilities);
-
-                    list.add(ElemWiFi);
-                }
-
-                adapter = new WiFiListSimpleAdapter(getActivity(), list, R.layout.row,
-                        new String[]{"ESSID", "BSSID", "KEY", "WPS", "SIGNAL", "KEYSCOUNT", "CAPABILITY"},
-                        new int[]{R.id.ESSID, R.id.BSSID, R.id.KEY, R.id.txtWPS, R.id.txtSignal, R.id.txtKeysCount});
-                WiFiList.setAdapter(adapter);
-
-                ScanInProcess = false;
-                btnRefresh.setEnabled(true);
-                btnCheckFromBase.setEnabled(true);
-            }
-            catch (Exception e) {}
-            return;
-        }
         if (!WifiMgr.isWifiEnabled()) {
             final String action = android.provider.Settings.ACTION_WIFI_SETTINGS;
             final AlertDialog.Builder builder = new AlertDialog.Builder(MyActivity.this);
@@ -924,9 +860,9 @@ public class MyActivity extends Activity {
     private void CheckFromBase()
     {
         JSONObject bss = new JSONObject();
-        BufferedReader Reader = null;
-        String ReadLine = "";
-        String RawData = "";
+        BufferedReader Reader;
+        String ReadLine;
+        StringBuilder RawData = new StringBuilder();
         Boolean FETCH_ESS;
 
         try {
@@ -963,13 +899,13 @@ public class MyActivity extends Activity {
             Reader = new BufferedReader(new InputStreamReader(Connection.getInputStream()));
 
             while ((ReadLine = Reader.readLine()) != null) {
-                RawData += ReadLine;
+                RawData.append(ReadLine);
             }
 
             try
             {
-                JSONObject json = new JSONObject(RawData);
-                Boolean ret = json.getBoolean("result");
+                JSONObject json = new JSONObject(RawData.toString());
+                boolean ret = json.getBoolean("result");
 
                 if (!ret)
                 {
@@ -977,24 +913,22 @@ public class MyActivity extends Activity {
                     String error = json.getString("error");
                     final String errorDesc = User.GetErrorDesc(error, this);
 
-                    if (error != null) {
-                        if (error.equals("loginfail"))
-                        {
-                            mSettings.Editor.putBoolean(Settings.API_KEYS_VALID, false);
-                            mSettings.Editor.commit();
-                            API_KEYS_VALID = false;
-                            ApiDataTest();
-                            return;
-                        }
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast t = Toast.makeText(getApplicationContext(), errorDesc, Toast.LENGTH_SHORT);
-                                t.show();
-                                btnCheckFromBase.setEnabled(true);
-                            }
-                        });
+                    if (error.equals("loginfail"))
+                    {
+                        mSettings.Editor.putBoolean(Settings.API_KEYS_VALID, false);
+                        mSettings.Editor.commit();
+                        API_KEYS_VALID = false;
+                        ApiDataTest();
+                        return;
                     }
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast t = Toast.makeText(getApplicationContext(), errorDesc, Toast.LENGTH_SHORT);
+                            t.show();
+                            btnCheckFromBase.setEnabled(true);
+                        }
+                    });
                     return;
                 }
                 if (!json.isNull("data"))

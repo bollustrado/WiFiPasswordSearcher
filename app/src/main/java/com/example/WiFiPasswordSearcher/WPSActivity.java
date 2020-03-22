@@ -23,10 +23,10 @@ import org.json.*;
 
 class WPSPin
 {
-    public int mode;
-    public String name;
+    int mode;
+    String name;
     public String pin;
-    public Boolean sugg;
+    Boolean sugg;
 }
 
 public class WPSActivity extends Activity
@@ -49,7 +49,6 @@ public class WPSActivity extends Activity
     ArrayList<String> wpsScore = new ArrayList<String>();
     ArrayList<String> wpsDb = new ArrayList<String>();
 
-    private DatabaseHelper mDBHelper;
     private SQLiteDatabase mDb;
     private volatile boolean wpsReady = false;
     private String cachedPins = "";
@@ -63,7 +62,7 @@ public class WPSActivity extends Activity
         WPSActivity.context = getApplicationContext();
         listContextMenuItems = context.getResources().getStringArray(R.array.menu_wps_pin);
 
-        mDBHelper = new DatabaseHelper(this);
+        DatabaseHelper mDBHelper = new DatabaseHelper(this);
         try
         {
             mDBHelper.updateDataBase();
@@ -82,11 +81,8 @@ public class WPSActivity extends Activity
             throw mSQLException;
         }
 
-        if (android.os.Build.VERSION.SDK_INT > 9)
-        {
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-        }
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
         mSettings = new Settings(getApplicationContext());
 
         API_READ_KEY = mSettings.AppSettings.getString(Settings.API_READ_KEY, "");
@@ -331,7 +327,7 @@ public class WPSActivity extends Activity
                     Thread.sleep(100);
                     wait -= 100;
                 }
-                catch (Exception e) {}
+                catch (Exception ignored) {}
             }
 
             return response2;
@@ -408,7 +404,7 @@ public class WPSActivity extends Activity
                 try
                 {
                     JSONObject jObject = new JSONObject(response);
-                    Boolean result = jObject.getBoolean("result");
+                    boolean result = jObject.getBoolean("result");
 
                     if (result)
                     {
@@ -426,13 +422,13 @@ public class WPSActivity extends Activity
                                 wpsMet.add(jObject.getString("name"));
                                 wpsScore.add(jObject.getString("score"));
                                 wpsDb.add(jObject.getBoolean("fromdb") ? "✔" : "");
-                                Integer score = Math.round(Float.parseFloat(wpsScore.get(i)) * 100);
+                                int score = Math.round(Float.parseFloat(wpsScore.get(i)) * 100);
                                 wpsScore.set(i, Integer.toString(score) + "%");
 
                                 data.add(new ItemWps(wpsPin.get(i), wpsMet.get(i), wpsScore.get(i), wpsDb.get(i)));
                             }
                         }
-                        catch (Exception e) {}
+                        catch (Exception ignored) {}
                     }
                     else
                     {
@@ -474,7 +470,7 @@ public class WPSActivity extends Activity
             pd.dismiss();
             ListView wpslist = (ListView)findViewById(R.id.WPSlist);
             String msg = "";
-            Boolean toast = true;
+            boolean toast = true;
             if (str.equals("http_error"))
             {
                 msg = getString(R.string.status_no_internet);

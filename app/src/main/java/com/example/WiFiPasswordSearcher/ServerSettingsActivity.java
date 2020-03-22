@@ -40,8 +40,8 @@ public class ServerSettingsActivity extends Activity
         String SERVER_LOGIN = mSettings.AppSettings.getString(Settings.APP_SERVER_LOGIN, "");
         String SERVER_PASSWORD = mSettings.AppSettings.getString(Settings.APP_SERVER_PASSWORD, "");
         String SERVER_URI = mSettings.AppSettings.getString(Settings.APP_SERVER_URI, getResources().getString(R.string.SERVER_URI_DEFAULT));
-        Boolean FETCH_ESS =  mSettings.AppSettings.getBoolean(Settings.APP_FETCH_ESS, false);
-        Boolean CHECK_UPDATES =  mSettings.AppSettings.getBoolean(Settings.APP_CHECK_UPDATES, true);
+        boolean FETCH_ESS =  mSettings.AppSettings.getBoolean(Settings.APP_FETCH_ESS, false);
+        boolean CHECK_UPDATES =  mSettings.AppSettings.getBoolean(Settings.APP_CHECK_UPDATES, true);
 
         txtServerLogin.setText(SERVER_LOGIN);
         txtServerPassword.setText(SERVER_PASSWORD);
@@ -66,8 +66,8 @@ public class ServerSettingsActivity extends Activity
             String Login = txtServerLogin.getText().toString();
             String Password = txtServerPassword.getText().toString();
             String Uri = txtServerUri.getText().toString();
-            Boolean FetchESS = swFetchESS.isChecked();
-            Boolean CheckUpdates = swCheckUpd.isChecked();
+            boolean FetchESS = swFetchESS.isChecked();
+            boolean CheckUpdates = swCheckUpd.isChecked();
 
             // Save
             mSettings.Editor.putString(Settings.APP_SERVER_LOGIN, Login);

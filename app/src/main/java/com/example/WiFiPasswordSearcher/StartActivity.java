@@ -47,18 +47,18 @@ public class StartActivity extends Activity {
         mSettings = new Settings(getApplicationContext());
         User = new UserManager(getApplicationContext());
 
-        edtLogin = (EditText)findViewById(R.id.edtLogin);
-        edtPassword = (EditText)findViewById(R.id.edtPassword);
+        edtLogin = (EditText) findViewById(R.id.edtLogin);
+        edtPassword = (EditText) findViewById(R.id.edtPassword);
 
-        llMenu = (LinearLayout)findViewById(R.id.llStartMenu);
-        btnGetKeys = (Button)findViewById(R.id.btnGetApiKeys);
-        btnStart = (Button)findViewById(R.id.btnStart);
-        btnUserInfo = (Button)findViewById(R.id.btnUserInfo);
+        llMenu = (LinearLayout) findViewById(R.id.llStartMenu);
+        btnGetKeys = (Button) findViewById(R.id.btnGetApiKeys);
+        btnStart = (Button) findViewById(R.id.btnStart);
+        btnUserInfo = (Button) findViewById(R.id.btnUserInfo);
 
-        Boolean API_KEYS_VALID = mSettings.AppSettings.getBoolean(Settings.API_KEYS_VALID, false);
+        boolean API_KEYS_VALID = mSettings.AppSettings.getBoolean(Settings.API_KEYS_VALID, false);
         String SavedLogin = mSettings.AppSettings.getString(Settings.APP_SERVER_LOGIN, "");
         String SavedPassword = mSettings.AppSettings.getString(Settings.APP_SERVER_PASSWORD, "");
-        Boolean CHECK_UPDATES = mSettings.AppSettings.getBoolean(Settings.APP_CHECK_UPDATES, true);
+        boolean CHECK_UPDATES = mSettings.AppSettings.getBoolean(Settings.APP_CHECK_UPDATES, true);
 
         if (API_KEYS_VALID)
         {
@@ -73,7 +73,7 @@ public class StartActivity extends Activity {
                     @Override
                     public void run() {
                         final AppVersion Version = new AppVersion(getApplicationContext());
-                        Boolean Result = Version.isActualyVersion(getApplicationContext(), false);
+                        boolean Result = Version.isActualyVersion(getApplicationContext(), false);
                         if (!Result)
                         {
                             runOnUiThread(new Runnable() {
@@ -105,7 +105,7 @@ public class StartActivity extends Activity {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        Boolean res = false;
+                        boolean res = false;
 
                         try {
                             res = getApiKeys(edtLogin.getText().toString(), edtPassword.getText().toString());
@@ -154,8 +154,8 @@ public class StartActivity extends Activity {
     {
         super.onConfigurationChanged(newConfig);
 
-        LinearLayout LR = (LinearLayout)findViewById(R.id.rootLayout);
-        LinearLayout LP = (LinearLayout)findViewById(R.id.layoutPadding);
+        LinearLayout LR = (LinearLayout) findViewById(R.id.rootLayout);
+        LinearLayout LP = (LinearLayout) findViewById(R.id.layoutPadding);
 
         if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT)
         {
@@ -174,7 +174,7 @@ public class StartActivity extends Activity {
         String Args = "/api/apikeys";
         BufferedReader Reader;
         String ReadLine;
-        String RawData = "";
+        StringBuilder RawData = new StringBuilder();
 
         try {
             mSettings.Reload();
@@ -199,14 +199,14 @@ public class StartActivity extends Activity {
             Reader = new BufferedReader(new InputStreamReader(Connection.getInputStream()));
 
             while ((ReadLine = Reader.readLine()) != null) {
-                RawData += ReadLine;
+                RawData.append(ReadLine);
             }
 
             try
             {
                 String ReadApiKey = null, WriteApiKey = null;
-                JSONObject Json = new JSONObject(RawData);
-                Boolean Successes = Json.getBoolean("result");
+                JSONObject Json = new JSONObject(RawData.toString());
+                boolean Successes = Json.getBoolean("result");
                 if (Successes)
                 {
                     JSONObject profile = Json.getJSONObject("profile");
@@ -258,15 +258,13 @@ public class StartActivity extends Activity {
                     String error = Json.getString("error");
                     final String errorDesc = User.GetErrorDesc(error, this);
 
-                    if (error != null) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast t = Toast.makeText(getApplicationContext(), errorDesc, Toast.LENGTH_SHORT);
-                                t.show();
-                            }
-                        });
-                    }
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast t = Toast.makeText(getApplicationContext(), errorDesc, Toast.LENGTH_SHORT);
+                            t.show();
+                        }
+                    });
                     return false;
                 }
             }

@@ -60,13 +60,13 @@ public class WifiDetails extends Activity
         NetworkBSSID = StartWifiInfo.get("BSSID");
         NetworkESSID = StartWifiInfo.get("SSID");
 
-        txtBSSID = (TextView)this.findViewById(R.id.txtDetailsBSSID);
-        txtESSID = (TextView)this.findViewById(R.id.txtDetailsESSID);
-        txtFreq = (TextView)this.findViewById(R.id.txtDetailsFreq);
-        txtSignal = (TextView)this.findViewById(R.id.txtDetailsSignal);
-        txtChannel = (TextView)this.findViewById(R.id.txtDetailsChannel);
-        CheckBox chkbUseDetector = (CheckBox)this.findViewById(R.id.chkbUseDetector);
-        LinearLayout llGrphView = (LinearLayout)this.findViewById(R.id.llGrphView);
+        txtBSSID = (TextView) this.findViewById(R.id.txtDetailsBSSID);
+        txtESSID = (TextView) this.findViewById(R.id.txtDetailsESSID);
+        txtFreq = (TextView) this.findViewById(R.id.txtDetailsFreq);
+        txtSignal = (TextView) this.findViewById(R.id.txtDetailsSignal);
+        txtChannel = (TextView) this.findViewById(R.id.txtDetailsChannel);
+        CheckBox chkbUseDetector = (CheckBox) this.findViewById(R.id.chkbUseDetector);
+        LinearLayout llGrphView = (LinearLayout) this.findViewById(R.id.llGrphView);
 
         mSoundPool = new SoundPool(1, AudioManager.STREAM_MUSIC, 0);
 
@@ -108,7 +108,7 @@ public class WifiDetails extends Activity
         mSettings = new Settings(getApplicationContext());
         mSettings.Reload();
 
-        Boolean wifiSignal = mSettings.AppSettings.getBoolean(Settings.WIFI_SIGNAL, false);
+        boolean wifiSignal = mSettings.AppSettings.getBoolean(Settings.WIFI_SIGNAL, false);
         chkbUseDetector.setChecked(wifiSignal);
 
         setBSSID(StartWifiInfo.get("BSSID"));
@@ -132,8 +132,8 @@ public class WifiDetails extends Activity
     {
         super.onConfigurationChanged(newConfig);
 
-        LinearLayout LR = (LinearLayout)findViewById(R.id.rootLayout);
-        LinearLayout LI = (LinearLayout)findViewById(R.id.layoutInfo);
+        LinearLayout LR = (LinearLayout) findViewById(R.id.rootLayout);
+        LinearLayout LI = (LinearLayout) findViewById(R.id.layoutInfo);
 
         if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT)
         {
@@ -190,7 +190,7 @@ public class WifiDetails extends Activity
         {
             List<ScanResult> results;
 
-            Boolean Founded = false;
+            boolean Founded = false;
             WifiMgr.startScan();
             results = WifiMgr.getScanResults();
             boolean match;

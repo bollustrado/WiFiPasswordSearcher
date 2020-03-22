@@ -21,6 +21,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -44,7 +45,7 @@ public class AppVersion
         mSettings = new Settings(context);
     }
 
-    public void ShowUpdateDialog(Activity activity)
+    void ShowUpdateDialog(Activity activity)
     {
         AlertDialog.Builder ad = new AlertDialog.Builder(activity);
 
@@ -72,51 +73,42 @@ public class AppVersion
     private void GetActualyVersion() throws IOException
     {
         String Args = "/api/ajax.php?Query=AppVersion";
-        BufferedReader Reader = null;
-        String ReadLine = "";
-        String RawData = "";
+        String ReadLine;
+        StringBuilder RawData = new StringBuilder();
 
-        try {
-            mSettings.Reload();
-            String SERVER_URI = mSettings.AppSettings.getString(Settings.APP_SERVER_URI, context.getResources().getString(R.string.SERVER_URI_DEFAULT));
-            URL Uri = new URL(SERVER_URI + Args);
+        mSettings.Reload();
+        String SERVER_URI = mSettings.AppSettings.getString(Settings.APP_SERVER_URI, context.getResources().getString(R.string.SERVER_URI_DEFAULT));
+        URL Uri = new URL(SERVER_URI + Args);
 
-            HttpURLConnection Connection = (HttpURLConnection) Uri.openConnection();
-            Connection.setRequestMethod("GET");
-            Connection.setReadTimeout(10 * 1000);
-            Connection.connect();
+        HttpURLConnection Connection = (HttpURLConnection) Uri.openConnection();
+        Connection.setRequestMethod("GET");
+        Connection.setReadTimeout(10 * 1000);
+        Connection.connect();
 
-            Reader = new BufferedReader(new InputStreamReader(Connection.getInputStream()));
+        BufferedReader Reader = new BufferedReader(new InputStreamReader(Connection.getInputStream()));
 
-            while ((ReadLine = Reader.readLine()) != null) {
-                RawData += ReadLine;
-            }
-            try
-            {
-                JSONObject Json = new JSONObject(RawData);
-                Boolean Successes = Json.getBoolean("Successes");
-                LoadSuccesses = Successes;
-                if (LoadSuccesses)
-                {
-                    ActualyVersion = (float)Json.getDouble("ActualyVersion");
-                    WhatNews = Json.getString("WhatNews");
-                    return;
-                }
-
-            }
-            catch (JSONException e)
-            {
-                e.printStackTrace();
-            }
-
+        while ((ReadLine = Reader.readLine()) != null) {
+            RawData.append(ReadLine);
         }
-        finally
+        try
         {
+            JSONObject Json = new JSONObject(RawData.toString());
+            LoadSuccesses = Json.getBoolean("Successes");
+            if (LoadSuccesses)
+            {
+                ActualyVersion = (float)Json.getDouble("ActualyVersion");
+                WhatNews = Json.getString("WhatNews");
+            }
 
         }
+        catch (JSONException e)
+        {
+            e.printStackTrace();
+        }
+
     }
 
-    public Boolean isActualyVersion(Context context, Boolean showMessage)
+    boolean isActualyVersion(Context context, Boolean showMessage)
     {
         if (showMessage) LoadSuccesses = false;
 
@@ -153,7 +145,7 @@ public class AppVersion
         return file.exists();
     }
 
-    public void wpsCompanionInit(Boolean force)
+    void wpsCompanionInit(Boolean force)
     {
         if (wpsCompanionExists() && !force)
             return;
@@ -177,10 +169,10 @@ public class AppVersion
             }
             wpsCompanionUpdate(str, date);
         }
-        catch (Exception e) {}
+        catch (Exception ignored) {}
     }
 
-    public void wpsCompanionUpdate(String str, Date date)
+    void wpsCompanionUpdate(String str, Date date)
     {
         File outFile = new File(context.getFilesDir().getAbsolutePath() + "/wpspin.html");
 
@@ -193,10 +185,10 @@ public class AppVersion
             out.close();
             outFile.setLastModified(date.getTime());
         }
-        catch (Exception e) {}
+        catch (Exception ignored) {}
     }
 
-    public String wpsCompanionGetPath()
+    String wpsCompanionGetPath()
     {
         if (!wpsCompanionExists())
             return null;
@@ -204,7 +196,7 @@ public class AppVersion
         return context.getFilesDir().getAbsolutePath() + "/wpspin.html";
     }
 
-    public Date wpsCompanionGetDate()
+    Date wpsCompanionGetDate()
     {
         File file = new File(context.getFilesDir().getAbsolutePath() + "/wpspin.html");
         Date date = new Date();
@@ -212,13 +204,13 @@ public class AppVersion
         return date;
     }
 
-    public long wpsCompanionGetSize()
+    long wpsCompanionGetSize()
     {
         File file = new File(context.getFilesDir().getAbsolutePath() + "/wpspin.html");
         return file.length();
     }
 
-    public Boolean wpsCompanionInternal()
+    Boolean wpsCompanionInternal()
     {
         Date date;
         SimpleDateFormat format = new SimpleDateFormat(context.getResources().getString(R.string.DEFAULT_DATE_FORMAT), Locale.US);
@@ -230,7 +222,7 @@ public class AppVersion
         return date.compareTo(wpsCompanionGetDate()) == 0;
     }
 
-    public String readableFileSize(long size)
+    String readableFileSize(long size)
     {
         if (size <= 0) return "0";
         final String[] units = new String[] { "B", "KiB", "MiB", "GiB", "TiB" };

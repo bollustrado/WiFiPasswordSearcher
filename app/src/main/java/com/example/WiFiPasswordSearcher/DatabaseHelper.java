@@ -1,5 +1,6 @@
 package com.example.WiFiPasswordSearcher;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -20,12 +21,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private final Context mContext;
     private boolean mNeedUpdate = false;
 
-    public DatabaseHelper(Context context) {
+    @SuppressLint("SdCardPath")
+    DatabaseHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
         if (android.os.Build.VERSION.SDK_INT >= 17)
-		DB_PATH = context.getApplicationInfo().dataDir+"/databases/";
+		DB_PATH = context.getApplicationInfo().dataDir + "/databases/";
         else
-            DB_PATH = "/data/data/" + context.getPackageName()+"/databases/";
+            DB_PATH = "/data/data/" + context.getPackageName() + "/databases/";
 		
         this.mContext = context;
 
@@ -34,7 +36,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         this.getReadableDatabase();
     }
 
-    public void updateDataBase() throws IOException {
+    void updateDataBase() throws IOException {
 		//mNeedUpdate=true;
         if (mNeedUpdate) {
             File dbFile = new File(DB_PATH + DB_NAME);
@@ -58,7 +60,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             this.close();
             try {
                 copyDBFile();
-            } catch (IOException mIOException) {}
+            } catch (IOException ignored) {}
         }
     }
 
