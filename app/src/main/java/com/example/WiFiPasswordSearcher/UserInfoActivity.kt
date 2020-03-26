@@ -32,11 +32,7 @@ class UserInfoActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.user)
         val mSettings = Settings(applicationContext)
-        info = try {
-            Objects.requireNonNull(intent.extras).getString("showInfo")
-        } catch (e: Exception) {
-            "user"
-        }
+        info = Objects.requireNonNull(intent.extras)?.getString("showInfo") ?: "user"
         txtLogin = findViewById(R.id.txtLogin) as TextView
         txtRegDate = findViewById(R.id.txtRegDate) as TextView
         txtGroup = findViewById(R.id.txtGroup) as TextView

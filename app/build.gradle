@@ -3,8 +3,8 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 22
-    buildToolsVersion "28.0.3"
+    compileSdkVersion 29
+    buildToolsVersion '29.0.3'
 
     defaultConfig {
         applicationId "com.example.WiFiPasswordSearcher"
@@ -18,12 +18,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+    useLibrary 'org.apache.http.legacy'
 }
 
 dependencies {
     implementation files('libs/androidsvg-1.2.1.jar')
-    implementation files('libs/GraphView-4.0.1.jar')
-    implementation files('libs/support-v4-13.0.0.jar')
+    implementation 'com.jjoe64:graphview:4.2.2'
     implementation files('libs/svgAndroid2.jar')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
