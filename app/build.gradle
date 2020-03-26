@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 22
@@ -23,4 +25,8 @@ dependencies {
     implementation files('libs/GraphView-4.0.1.jar')
     implementation files('libs/support-v4-13.0.0.jar')
     implementation files('libs/svgAndroid2.jar')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+}
+repositories {
+    mavenCentral()
 }

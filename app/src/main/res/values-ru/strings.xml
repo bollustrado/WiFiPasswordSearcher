@@ -132,4 +132,5 @@
     <string name="button_open_settings">Открыть настройки</string>
     <string name="dialog_message_location_disabled">В Android 9 и выше необходимо включить службы местоположения, чтобы сканировать сети. Включить сейчас?</string>
     <string name="dialog_message_please_enable_wifi">Необходимо включить Wi-Fi, чтобы сканировать сети</string>
+    <string name="label_signal_graph">График сигнала</string>
 </resources>

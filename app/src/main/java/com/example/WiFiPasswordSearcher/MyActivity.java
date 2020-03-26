@@ -911,7 +911,7 @@ public class MyActivity extends Activity {
                 {
                     // API failure
                     String error = json.getString("error");
-                    final String errorDesc = User.GetErrorDesc(error, this);
+                    final String errorDesc = User.getErrorDesc(error, this);
 
                     if (error.equals("loginfail"))
                     {

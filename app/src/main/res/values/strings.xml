@@ -162,4 +162,5 @@
     <string name="dialog_message_location_disabled">On Android 9 and higher you must enable location to scan networks. Enable now?</string>
     <string name="button_open_settings">Open settings</string>
     <string name="dialog_message_please_enable_wifi">You must enable Wi-Fi to scan networks</string>
+    <string name="label_signal_graph">Signal graph</string>
 </resources>
