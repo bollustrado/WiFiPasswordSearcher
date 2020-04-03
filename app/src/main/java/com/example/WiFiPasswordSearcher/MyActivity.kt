@@ -16,9 +16,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import android.widget.AdapterView.OnItemClickListener
-import com.example.WiFiPasswordSearcher.MyActivity
-import com.example.WiFiPasswordSearcher.StartActivity
-import com.example.WiFiPasswordSearcher.WPSActivity
 import com.larvalabs.svgandroid.SVG
 import com.larvalabs.svgandroid.SVGParser
 import org.json.JSONArray
@@ -340,7 +337,7 @@ class MyActivity : Activity() {
                         return@run
                     }
                     apdata = WiFiKeys!![id.toInt()]
-                    if (apdata == null || apdata.Keys!!.size < 1) {
+                    if (apdata.Keys!!.size < 1) {
                         val toast = Toast.makeText(applicationContext,
                                 getString(R.string.toast_key_not_found), Toast.LENGTH_SHORT)
                         toast.show()
@@ -455,7 +452,7 @@ class MyActivity : Activity() {
         super.onRestoreInstanceState(savedInstanceState)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == WIFI_ENABLE_REQUEST || requestCode == LOCATION_ENABLE_REQUEST) {
             ScanAndShowWiFi()
         }

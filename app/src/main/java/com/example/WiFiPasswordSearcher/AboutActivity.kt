@@ -11,7 +11,7 @@ class AboutActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.about)
-        val about = findViewById(R.id.aboutWeb) as WebView
+        val about = findViewById<WebView>(R.id.aboutWeb)
         val filename = "about.html"
         var html: String
         html = try {

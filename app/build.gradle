@@ -22,7 +22,6 @@ android {
 }
 
 dependencies {
-    implementation files('libs/androidsvg-1.2.1.jar')
     implementation 'com.jjoe64:graphview:4.2.2'
     implementation files('libs/svgAndroid2.jar')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"

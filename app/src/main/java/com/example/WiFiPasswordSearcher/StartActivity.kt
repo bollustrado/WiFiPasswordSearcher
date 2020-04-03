@@ -12,7 +12,6 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Toast
-import com.example.WiFiPasswordSearcher.StartActivity
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
