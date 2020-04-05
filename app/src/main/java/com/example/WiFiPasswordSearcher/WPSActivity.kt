@@ -83,8 +83,6 @@ class WPSActivity : Activity() {
         StrictMode.setThreadPolicy(policy)
         mSettings = Settings(applicationContext)
         API_READ_KEY = mSettings!!.AppSettings!!.getString(Settings.API_READ_KEY, "")
-        val actionBar = actionBar
-        actionBar!!.hide()
         val ESSDWpsText = findViewById<View>(R.id.ESSDWpsTextView) as TextView
         val ESSDWps = intent.extras!!.getString("variable")
         ESSDWpsText.text = ESSDWps // ESSID

@@ -8,7 +8,6 @@
     <string-array name="strings_settings_rows">
         <item>Locator Settings</item>
         <item>WPS PIN Companion</item>
-        <item>Monitor a network…</item>
         <item>About</item>
         <item>Check updates</item>
         <item>Logout</item>
@@ -91,8 +90,8 @@
 
     <!-- SettingsActivity strings -->
     <string name="dialog_network_properties">Enter network properties</string>
-    <string name="hint_enter_bssid">Enter BSSID (11:22:33:44:55:66)</string>
-    <string name="hint_enter_essid">Enter ESSID</string>
+    <string name="hint_enter_bssid">BSSID (11:22:33:44:55:66)</string>
+    <string name="hint_enter_essid">ESSID</string>
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
 
@@ -163,4 +162,6 @@
     <string name="button_open_settings">Open settings</string>
     <string name="dialog_message_please_enable_wifi">You must enable Wi-Fi to scan networks</string>
     <string name="label_signal_graph">Signal graph</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_monitor_network">Monitor a network…</string>
 </resources>

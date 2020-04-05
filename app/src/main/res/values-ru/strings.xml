@@ -4,7 +4,6 @@
     <string-array name="strings_settings_rows">
         <item>Настройки приложения</item>
         <item>WPS PIN Companion</item>
-        <item>Мониторинг сети…</item>
         <item>О приложении</item>
         <item>Проверить наличие обновлений</item>
         <item>Выйти из аккаунта</item>
@@ -73,8 +72,8 @@
     <string name="label_signal">"Мощность: "</string>
     <string name="cancel">Отмена</string>
     <string name="dialog_network_properties">Введите параметры сети</string>
-    <string name="hint_enter_bssid">Введите BSSID (11:22:33:44:55:66)</string>
-    <string name="hint_enter_essid">Введите ESSID</string>
+    <string name="hint_enter_bssid">BSSID (11:22:33:44:55:66)</string>
+    <string name="hint_enter_essid">ESSID</string>
     <string name="label_file_size">Размер файла</string>
     <string name="label_last_updated">Последнее обновление</string>
     <string name="ok">ОК</string>
@@ -133,4 +132,6 @@
     <string name="dialog_message_location_disabled">В Android 9 и выше необходимо включить службы местоположения, чтобы сканировать сети. Включить сейчас?</string>
     <string name="dialog_message_please_enable_wifi">Необходимо включить Wi-Fi, чтобы сканировать сети</string>
     <string name="label_signal_graph">График сигнала</string>
+    <string name="action_settings">Настройки</string>
+    <string name="action_monitor_network">Мониторинг сети…</string>
 </resources>

@@ -12,12 +12,19 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
+import android.text.InputType
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import android.widget.AdapterView.OnItemClickListener
+import androidx.appcompat.app.AppCompatActivity
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.larvalabs.svgandroid.SVG
 import com.larvalabs.svgandroid.SVGParser
+import kotlinx.android.synthetic.main.main.*
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -174,6 +181,7 @@ internal class WiFiListSimpleAdapter(private val context: Context, data: List<Mu
 
     private fun passwordChoose(rowID: Int, passId: Int) {
         var row: View? = null
+
         for (i in 0 until MyActivity.WiFiList!!.childCount) {
             row = MyActivity.WiFiList!!.getChildAt(i)
             val txtRowId = row.findViewById<View>(R.id.txtRowId) as TextView
@@ -212,23 +220,23 @@ internal class WiFiListSimpleAdapter(private val context: Context, data: List<Mu
     }
 }
 
-class MyActivity : Activity() {
+class MyActivity : AppCompatActivity() {
     /**
      * Called when the activity is first created.
      */
     private var mSettings: Settings? = null
     private var User: UserManager? = null
-    private var btnRefresh: Button? = null
-    private var btnCheckFromBase: Button? = null
+    private var fabCheckFromBase: FloatingActionButton? = null
     private var WifiMgr: WifiManager? = null
     private var LocationMgr: LocationManager? = null
     private var sClipboard: ClipboardManager? = null
     protected var lastWiFiClickItem: LinearLayout? = null
     private var listContextMenuItems = arrayOfNulls<String>(6)
-    fun btnRefreshOnClick(v: View?) {
+
+    private fun refreshNetworkList() {
         if (ScanInProcess) return
-        if (WiFiKeys != null) WiFiKeys!!.clear()
-        if (WiFiScanResult != null) WiFiScanResult!!.clear()
+        WiFiKeys?.clear()
+        WiFiScanResult?.clear()
         val context = applicationContext
         val list = ArrayList<HashMap<String, String?>>()
         val adapter = SimpleAdapter(context, list, R.layout.row, arrayOf("ESSID", "BSSID"), intArrayOf(R.id.ESSID, R.id.BSSID))
@@ -236,22 +244,14 @@ class MyActivity : Activity() {
         ScanAndShowWiFi()
     }
 
-    private val btnSettingsOnClick = View.OnClickListener {
-        val intent = Intent(this@MyActivity, SettingsActivity::class.java)
-        startActivity(intent)
-    }
-    private val btnStartGPSLogOnClick = View.OnClickListener { /*setContentView(R.layout.gpslogging);
-            btnSettingsRevent = (ImageButton) findViewById(R.id.btnGPSLoggingRevent);
-            btnSettingsRevent.setOnClickListener(btnSettingsReventOnClick);*/
-    }
-    private val btnCheckFromBaseOnClick = View.OnClickListener {
+    private val fabCheckFromBaseOnClick = View.OnClickListener {
         if (ScanInProcess) return@OnClickListener
         if (WiFiKeys != null) WiFiKeys!!.clear()
         val dProccess = ProgressDialog(this@MyActivity)
         dProccess.setProgressStyle(ProgressDialog.STYLE_SPINNER)
         dProccess.setMessage(resources.getString(R.string.status_searching))
         dProccess.setCanceledOnTouchOutside(false)
-        btnCheckFromBase!!.isEnabled = false
+        fabCheckFromBase!!.isEnabled = false
         dProccess.show()
         Thread(Runnable {
             CheckFromBase()
@@ -453,12 +453,13 @@ class MyActivity : Activity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == WIFI_ENABLE_REQUEST || requestCode == LOCATION_ENABLE_REQUEST) {
             ScanAndShowWiFi()
         }
     }
 
-    fun ApiDataTest() {
+    private fun ApiDataTest() {
         if (!API_KEYS_VALID) {
             runOnUiThread {
                 val t = Toast.makeText(applicationContext, getString(R.string.toast_enter_credentials), Toast.LENGTH_SHORT)
@@ -473,8 +474,7 @@ class MyActivity : Activity() {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main)
-        val actionBar = actionBar
-        actionBar!!.hide()
+        setSupportActionBar(bottomAppBar)
         listContextMenuItems = resources.getStringArray(R.array.menu_network)
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
@@ -484,27 +484,79 @@ class MyActivity : Activity() {
         API_READ_KEY = mSettings!!.AppSettings!!.getString(Settings.API_READ_KEY, "")
         API_WRITE_KEY = mSettings!!.AppSettings!!.getString(Settings.API_WRITE_KEY, "")
         API_KEYS_VALID = mSettings!!.AppSettings!!.getBoolean(Settings.API_KEYS_VALID, false)
-        WiFiList = findViewById<View>(R.id.WiFiList) as ListView
-        btnRefresh = findViewById<View>(R.id.btnRefresh) as Button
-        btnCheckFromBase = findViewById<View>(R.id.btnCheckFromBase) as Button
-        val btnSettings = findViewById<View>(R.id.btnSettings) as ImageButton
-        val btnStartGPSLog = findViewById<View>(R.id.btnStartGPSLog) as Button
+        val WiFiList = findViewById<View>(R.id.WiFiList) as ListView
+        fabCheckFromBase = findViewById(R.id.btnCheckFromBase) as FloatingActionButton
+        val swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout) as SwipeRefreshLayout
+        swipeRefreshLayout?.setOnRefreshListener {
+            refreshNetworkList()
+            swipeRefreshLayout?.isRefreshing = false
+        }
         WifiMgr = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         LocationMgr = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         sClipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        btnCheckFromBase!!.setOnClickListener(btnCheckFromBaseOnClick)
-        btnStartGPSLog.setOnClickListener(btnStartGPSLogOnClick)
-        btnSettings.setOnClickListener(btnSettingsOnClick)
-        WiFiList!!.onItemClickListener = WiFiListOnClick
+        fabCheckFromBase!!.setOnClickListener(fabCheckFromBaseOnClick)
+        WiFiList.onItemClickListener = WiFiListOnClick
         if (adapter != null) {
-            WiFiList!!.adapter = adapter
-            btnCheckFromBase!!.isEnabled = true
+            WiFiList.adapter = adapter
+            fabCheckFromBase!!.isEnabled = true
         }
         if (ScanInProcess) {
             //   if(ScanWiFiReceiverIntent != null) unregisterReceiver(ScanWiFiReceiverIntent);
             //ScanAndShowWiFi();
         }
         ScanAndShowWiFi()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.bottomappbar_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item!!.itemId) {
+            R.id.action_refresh -> {
+                refreshNetworkList()
+            }
+            R.id.action_monitor_network -> {
+                val lay = LinearLayout(this@MyActivity)
+                lay.orientation = LinearLayout.VERTICAL
+                val ebss = EditText(this@MyActivity)
+                ebss.hint = getString(R.string.hint_enter_bssid)
+                ebss.inputType = InputType.TYPE_CLASS_TEXT
+                lay.addView(ebss)
+                val eess = EditText(this@MyActivity)
+                eess.hint = getString(R.string.hint_enter_essid)
+                eess.inputType = InputType.TYPE_CLASS_TEXT
+                lay.addView(eess)
+                val alert = AlertDialog.Builder(this@MyActivity)
+                alert.setTitle(getString(R.string.dialog_network_properties))
+                alert.setView(lay)
+                alert.setPositiveButton(getString(R.string.ok)) { dialog, which ->
+                    val detailsActivityIntent = Intent(this@MyActivity, WifiDetails::class.java)
+                    val WifiInfo = HashMap<String, String>()
+                    WifiInfo["BSSID"] = ebss.text.toString().toLowerCase()
+                    WifiInfo["SSID"] = eess.text.toString()
+                    WifiInfo["Freq"] = "0"
+                    WifiInfo["Signal"] = "-100"
+                    detailsActivityIntent.putExtra("WifiInfo", WifiInfo)
+                    startActivity(detailsActivityIntent)
+                }
+                alert.setNegativeButton(getString(R.string.cancel)) { dialog, which -> dialog.cancel() }
+                alert.show()
+            }
+            R.id.app_bar_settings -> {
+                val intent = Intent(this@MyActivity, SettingsActivity::class.java)
+                startActivity(intent)
+            }
+        }
+
+        return true
+    }
+
+    fun Context.toast(message: CharSequence) {
+        val toast = Toast.makeText(this, message, Toast.LENGTH_SHORT)
+        toast.show()
     }
 
     fun ScanAndShowWiFi() {
@@ -576,8 +628,7 @@ class MyActivity : Activity() {
                 adapter = WiFiListSimpleAdapter(activity, list, R.layout.row, arrayOf("ESSID", "BSSID", "KEY", "WPS", "SIGNAL", "KEYSCOUNT", "CAPABILITY"), intArrayOf(R.id.ESSID, R.id.BSSID, R.id.KEY, R.id.txtWPS, R.id.txtSignal, R.id.txtKeysCount))
                 WiFiList!!.adapter = adapter
                 ScanInProcess = false
-                btnRefresh!!.isEnabled = true
-                btnCheckFromBase!!.isEnabled = true
+                fabCheckFromBase!!.isEnabled = true
                 val toast = Toast.makeText(applicationContext,
                         getString(R.string.toast_scan_complete), Toast.LENGTH_SHORT)
                 toast.show()
@@ -588,8 +639,7 @@ class MyActivity : Activity() {
         }
         registerReceiver(ScanWiFiReceiverIntent, IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION))
         ScanInProcess = true
-        btnRefresh!!.isEnabled = false
-        btnCheckFromBase!!.isEnabled = false
+        fabCheckFromBase!!.isEnabled = false
         WifiMgr!!.startScan()
     }
 
@@ -644,7 +694,7 @@ class MyActivity : Activity() {
                     runOnUiThread {
                         val t = Toast.makeText(applicationContext, errorDesc, Toast.LENGTH_SHORT)
                         t.show()
-                        btnCheckFromBase!!.isEnabled = true
+                        fabCheckFromBase!!.isEnabled = true
                     }
                     return
                 }
@@ -661,7 +711,7 @@ class MyActivity : Activity() {
                 runOnUiThread {
                     val t = Toast.makeText(applicationContext, getString(R.string.toast_database_failure), Toast.LENGTH_SHORT)
                     t.show()
-                    btnCheckFromBase!!.isEnabled = true
+                    fabCheckFromBase!!.isEnabled = true
                 }
                 return
             }
@@ -670,7 +720,7 @@ class MyActivity : Activity() {
             runOnUiThread {
                 val t = Toast.makeText(applicationContext, getString(R.string.status_no_internet), Toast.LENGTH_SHORT)
                 t.show()
-                btnCheckFromBase!!.isEnabled = true
+                fabCheckFromBase!!.isEnabled = true
             }
             return
         }
@@ -705,7 +755,7 @@ class MyActivity : Activity() {
         adapter = WiFiListSimpleAdapter(activity, list, R.layout.row, arrayOf("ESSID", "BSSID", "KEY", "WPS", "SIGNAL", "KEYSCOUNT", "CAPABILITY"), intArrayOf(R.id.ESSID, R.id.BSSID, R.id.KEY, R.id.txtWPS, R.id.txtSignal, R.id.txtKeysCount))
         runOnUiThread(Thread(Runnable {
             WiFiList!!.adapter = adapter
-            btnCheckFromBase!!.isEnabled = true
+            fabCheckFromBase!!.isEnabled = true
         }
         ))
     }

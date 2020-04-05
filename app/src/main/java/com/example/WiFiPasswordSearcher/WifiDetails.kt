@@ -19,23 +19,23 @@ import com.jjoe64.graphview.series.LineGraphSeries
 import java.util.*
 
 class WifiDetails : Activity() {
-    private var WiFiInfo: ScanResult? = null
-    private var DetectorThread: Thread? = null
+    private var wifiInfo: ScanResult? = null
+    private var detectorThread: Thread? = null
     private var mSoundPool: SoundPool? = null
-    private var WifiMgr: WifiManager? = null
-    private var NetworkBSSID: String? = null
-    private var NetworkESSID: String? = null
+    private var wifiMgr: WifiManager? = null
+    private var networkBSSID: String? = null
+    private var networkESSID: String? = null
     private var txtBSSID: TextView? = null
     private var txtESSID: TextView? = null
     private var txtFreq: TextView? = null
     private var txtSignal: TextView? = null
     private var txtChannel: TextView? = null
-    private var ScanThreadActive = false
-    private var UseWifiDetector = false
-    private var LastSignal = 0
-    private var LastFreq = -1
-    private var LastBSSID: String? = null
-    private var LastESSID: String? = null
+    private var scanThreadActive = false
+    private var useWifiDetector = false
+    private var lastSignal = 0
+    private var lastFreq = -1
+    private var lastBSSID: String? = null
+    private var lastESSID: String? = null
     private var mSettings: Settings? = null
     private var graphSeries: LineGraphSeries<DataPoint>? = null
     private var graphView: GraphView? = null
@@ -44,10 +44,10 @@ class WifiDetails : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.wifi_details)
         onConfigurationChanged(resources.configuration)
-        UseWifiDetector = false
+        useWifiDetector = false
         val StartWifiInfo = intent.getSerializableExtra("WifiInfo") as HashMap<String, String>
-        NetworkBSSID = StartWifiInfo["BSSID"]
-        NetworkESSID = StartWifiInfo["SSID"]
+        networkBSSID = StartWifiInfo["BSSID"]
+        networkESSID = StartWifiInfo["SSID"]
         txtBSSID = findViewById(R.id.txtDetailsBSSID) as TextView
         txtESSID = findViewById(R.id.txtDetailsESSID) as TextView
         txtFreq = findViewById(R.id.txtDetailsFreq) as TextView
@@ -70,12 +70,12 @@ class WifiDetails : Activity() {
         graphView!!.addSeries(graphSeries)
         llGrphView.addView(graphView)
         chkbUseDetector.setOnCheckedChangeListener { buttonView, isChecked ->
-            UseWifiDetector = isChecked
-            mSettings!!.Editor!!.putBoolean(Settings.WIFI_SIGNAL, UseWifiDetector)
+            useWifiDetector = isChecked
+            mSettings!!.Editor!!.putBoolean(Settings.WIFI_SIGNAL, useWifiDetector)
             mSettings!!.Editor!!.commit()
-            if (UseWifiDetector) {
-                DetectorThread = Thread(Runnable { DetectorWorker() })
-                DetectorThread!!.start()
+            if (useWifiDetector) {
+                detectorThread = Thread(Runnable { DetectorWorker() })
+                detectorThread!!.start()
             }
         }
         mSettings = Settings(applicationContext)
@@ -86,9 +86,9 @@ class WifiDetails : Activity() {
         setESSID(StartWifiInfo["SSID"])
         setFreq(StartWifiInfo["Freq"])
         setSignal(StartWifiInfo["Signal"])
-        WifiMgr = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        wifiMgr = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         val ScanThread = Thread(Runnable { ScanWorker() })
-        ScanThreadActive = true
+        scanThreadActive = true
         ScanThread.start()
     }
 
@@ -111,24 +111,24 @@ class WifiDetails : Activity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        UseWifiDetector = false
-        ScanThreadActive = false
+        useWifiDetector = false
+        scanThreadActive = false
         graphView!!.removeAllSeries()
         graphSeries = null
     }
 
     private fun Update() {
-        setBSSID(WiFiInfo!!.BSSID)
-        setESSID(WiFiInfo!!.SSID)
-        setFreq(Integer.toString(WiFiInfo!!.frequency))
-        setSignal(Integer.toString(WiFiInfo!!.level))
+        setBSSID(wifiInfo!!.BSSID)
+        setESSID(wifiInfo!!.SSID)
+        setFreq(Integer.toString(wifiInfo!!.frequency))
+        setSignal(Integer.toString(wifiInfo!!.level))
     }
 
     private fun DetectorWorker() {
         val PickSoundId = mSoundPool!!.load(applicationContext, R.raw.pick, 1)
-        while (UseWifiDetector) {
-            if (LastSignal > 0) mSoundPool!!.play(PickSoundId, 1f, 1f, 100, 0, 1f)
-            val SleepTime = 2100 - 2000 / 100 * LastSignal
+        while (useWifiDetector) {
+            if (lastSignal > 0) mSoundPool!!.play(PickSoundId, 1f, 1f, 100, 0, 1f)
+            val SleepTime = 2100 - 2000 / 100 * lastSignal
             try {
                 Thread.sleep(SleepTime.toLong(), 0)
             } catch (e: InterruptedException) {
@@ -139,26 +139,26 @@ class WifiDetails : Activity() {
 
     private fun ScanWorker() // THREADED!
     {
-        while (ScanThreadActive) {
+        while (scanThreadActive) {
             var results: List<ScanResult>
             var Founded = false
-            WifiMgr!!.startScan()
-            results = WifiMgr!!.scanResults
+            wifiMgr!!.startScan()
+            results = wifiMgr!!.scanResults
             var match: Boolean
             for (result in results) {
-                match = if (!NetworkBSSID!!.isEmpty() && !NetworkESSID!!.isEmpty()) {
-                    result.BSSID == NetworkBSSID && result.SSID == NetworkESSID
-                } else if (NetworkBSSID!!.isEmpty() && !NetworkESSID!!.isEmpty()) {
-                    result.SSID == NetworkESSID
-                } else if (!NetworkBSSID!!.isEmpty() && NetworkESSID!!.isEmpty()) {
-                    result.BSSID == NetworkBSSID
+                match = if (!networkBSSID!!.isEmpty() && !networkESSID!!.isEmpty()) {
+                    result.BSSID == networkBSSID && result.SSID == networkESSID
+                } else if (networkBSSID!!.isEmpty() && !networkESSID!!.isEmpty()) {
+                    result.SSID == networkESSID
+                } else if (!networkBSSID!!.isEmpty() && networkESSID!!.isEmpty()) {
+                    result.BSSID == networkBSSID
                 } else {
                     true
                 }
                 if (match) {
-                    if (NetworkBSSID!!.isEmpty()) NetworkBSSID = result.BSSID
-                    if (NetworkESSID!!.isEmpty()) NetworkESSID = result.SSID
-                    WiFiInfo = result
+                    if (networkBSSID!!.isEmpty()) networkBSSID = result.BSSID
+                    if (networkESSID!!.isEmpty()) networkESSID = result.SSID
+                    wifiInfo = result
                     Update()
                     Founded = true
                     break
@@ -176,24 +176,24 @@ class WifiDetails : Activity() {
     private fun setBSSID(BSSID: String?) {
         var BSSID = BSSID
         BSSID = BSSID!!.toUpperCase()
-        if (BSSID == LastBSSID) return
+        if (BSSID == lastBSSID) return
         val text = "BSSID: " + if (BSSID.isEmpty()) "Unknown" else BSSID
         runOnUiThread { txtBSSID!!.text = text }
-        LastBSSID = BSSID
+        lastBSSID = BSSID
     }
 
     private fun setESSID(ESSID: String?) {
-        if (ESSID == LastESSID) return
+        if (ESSID == lastESSID) return
         val text = if (ESSID!!.isEmpty()) "<unknown>" else ESSID
         runOnUiThread { txtESSID!!.text = text }
-        LastESSID = ESSID
+        lastESSID = ESSID
     }
 
     private fun setFreq(Freq: String?) {
         var sDiap = ""
         var Channel = 0
         val iFreq = Freq!!.toInt()
-        if (iFreq == LastFreq) return
+        if (iFreq == lastFreq) return
         if (iFreq > 0) {
             when (iFreq) {
                 in 2401..2483 -> {
@@ -221,7 +221,7 @@ class WifiDetails : Activity() {
         val sText = getString(R.string.label_freq) + if (iFreq <= 0) "Unknown" else "$Freq MHz ($sDiap)"
         runOnUiThread { txtFreq!!.text = sText }
         setChannel(Channel)
-        LastFreq = iFreq
+        lastFreq = iFreq
     }
 
     private fun setSignal(Signal: String?) {
@@ -229,7 +229,7 @@ class WifiDetails : Activity() {
         iSignal = (100 + iSignal) * 2
         iSignal = Math.min(Math.max(iSignal, 0), 100)
         val fSignal = iSignal
-        LastSignal = iSignal
+        lastSignal = iSignal
         runOnUiThread {
             graphSeries!!.appendData(
                     DataPoint(iGraphPointCount.toDouble(), fSignal.toDouble()),
