@@ -7,10 +7,9 @@ import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
 import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Toast
+import com.example.WiFiPasswordSearcher.databinding.ActivityUserBinding
 import org.apache.http.client.ResponseHandler
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.BasicResponseHandler
@@ -23,54 +22,44 @@ import java.util.*
  * Created by пк on 20.12.2015.
  */
 class UserInfoActivity : Activity() {
-    var txtLogin: TextView? = null
-    var txtRegDate: TextView? = null
-    var txtGroup: TextView? = null
-    private var info: String? = null
+    private lateinit var binding: ActivityUserBinding
+    private lateinit var info: String
     @TargetApi(Build.VERSION_CODES.KITKAT)
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.user)
-        val mSettings = Settings(applicationContext)
-        info = Objects.requireNonNull(intent.extras)?.getString("showInfo") ?: "user"
-        txtLogin = findViewById(R.id.txtLogin) as TextView
-        txtRegDate = findViewById(R.id.txtRegDate) as TextView
-        txtGroup = findViewById(R.id.txtGroup) as TextView
-        val Nick: String
-        val Group: String
+        binding = ActivityUserBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        info = intent.extras?.getString("showInfo") ?: "user"
+        val nick: String
+        val group: String
         val date: Date
-        if (info != null && info == "wpspin") {
+        if (info == "wpspin") {
             val updater = AppVersion(applicationContext)
             updater.wpsCompanionInit(false)
-            val lButtons = findViewById(R.id.buttonsLayout) as LinearLayout
-            lButtons.visibility = LinearLayout.VISIBLE
-            val btnRevert = findViewById(R.id.btnRevert) as Button
-            btnRevert.isEnabled = !updater.wpsCompanionInternal()
-            val lReg = findViewById(R.id.labRegDate) as TextView
-            val lGroup = findViewById(R.id.labGroup) as TextView
-            Nick = "WPS PIN Companion"
-            lReg.text = getString(R.string.label_last_updated)
+            binding.buttonsLayout.visibility = LinearLayout.VISIBLE
+            binding.btnRevert.isEnabled = !updater.wpsCompanionInternal()
+            nick = "WPS PIN Companion"
+            binding.labRegDate.text = getString(R.string.label_last_updated)
             date = updater.wpsCompanionGetDate()
-            lGroup.text = getString(R.string.label_file_size)
+            binding.labGroup.text = getString(R.string.label_file_size)
             val size = updater.wpsCompanionGetSize()
-            Group = updater.readableFileSize(size)
+            group = updater.readableFileSize(size)
         } else {
             val User = UserManager(applicationContext)
             User.fromSettings
-            val lButtons = findViewById(R.id.buttonsLayout) as LinearLayout
-            lButtons.visibility = LinearLayout.GONE
+            binding.buttonsLayout.visibility = LinearLayout.GONE
             val format = SimpleDateFormat(resources.getString(R.string.DEFAULT_DATE_FORMAT), Locale.US)
             date = try {
-                format.parse(User.RegDate)
+                format.parse(User.regDate)
             } catch (e: Exception) {
                 Date()
             }
-            Nick = User.NickName
-            Group = User.getGroup(applicationContext)
+            nick = User.nickName
+            group = User.getGroup(applicationContext)
         }
-        txtLogin!!.text = Nick
-        txtRegDate!!.text = DateFormat.getDateTimeInstance().format(date)
-        txtGroup!!.text = Group
+        binding.txtLogin.text = nick
+        binding.txtRegDate.text = DateFormat.getDateTimeInstance().format(date)
+        binding.txtGroup.text = group
     }
 
     private inner class AsyncWpsUpdater : AsyncTask<String?, Void?, String>() {
@@ -89,8 +78,8 @@ class UserInfoActivity : Activity() {
             val res: ResponseHandler<String> = BasicResponseHandler()
             val mSettings = Settings(applicationContext)
             mSettings.Reload()
-            val SERVER_URI = mSettings.AppSettings!!.getString(Settings.APP_SERVER_URI, resources.getString(R.string.SERVER_URI_DEFAULT))
-            val http = HttpGet("$SERVER_URI/wpspin")
+            val serverURI = mSettings.AppSettings!!.getString(Settings.APP_SERVER_URI, resources.getString(R.string.SERVER_URI_DEFAULT))
+            val http = HttpGet("$serverURI/wpspin")
             var str = ""
             try {
                 str = hc.execute(http, res)
@@ -105,12 +94,11 @@ class UserInfoActivity : Activity() {
             if (str.contains("initAlgos();")) {
                 val updater = AppVersion(applicationContext)
                 updater.wpsCompanionUpdate(str, Date())
-                txtRegDate!!.text = DateFormat.getDateTimeInstance().format(updater.wpsCompanionGetDate())
-                txtGroup!!.text = updater.readableFileSize(updater.wpsCompanionGetSize())
-                val btnRevert = findViewById(R.id.btnRevert) as Button
-                btnRevert.isEnabled = !updater.wpsCompanionInternal()
+                binding.txtRegDate.text = DateFormat.getDateTimeInstance().format(updater.wpsCompanionGetDate())
+                binding.txtGroup.text = updater.readableFileSize(updater.wpsCompanionGetSize())
+                binding.btnRevert.isEnabled = !updater.wpsCompanionInternal()
                 msg = getString(R.string.toast_updated_successful)
-            } else if (str.length == 0) {
+            } else if (str.isEmpty()) {
                 msg = getString(R.string.status_no_internet)
             } else {
                 msg = getString(R.string.toast_update_failed)
@@ -120,18 +108,18 @@ class UserInfoActivity : Activity() {
         }
     }
 
-    fun btnUpdateOnClick(v: View?) {
-        if (info != null && info == "wpspin") {
+    fun btnUpdateOnClick(view: View) {
+        if (info == "wpspin") {
             AsyncWpsUpdater().execute()
         }
     }
 
     fun btnRevertOnClick(v: View) {
-        if (info != null && info == "wpspin") {
+        if (info == "wpspin") {
             val updater = AppVersion(applicationContext)
             updater.wpsCompanionInit(true)
-            txtRegDate!!.text = DateFormat.getDateTimeInstance().format(updater.wpsCompanionGetDate())
-            txtGroup!!.text = updater.readableFileSize(updater.wpsCompanionGetSize())
+            binding.txtRegDate.text = DateFormat.getDateTimeInstance().format(updater.wpsCompanionGetDate())
+            binding.txtGroup.text = updater.readableFileSize(updater.wpsCompanionGetSize())
             v.isEnabled = !updater.wpsCompanionInternal()
             val toast = Toast.makeText(applicationContext,
                     getString(R.string.toast_reverted_to_init_state), Toast.LENGTH_SHORT)

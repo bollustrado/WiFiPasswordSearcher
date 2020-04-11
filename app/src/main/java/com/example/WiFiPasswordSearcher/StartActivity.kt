@@ -8,10 +8,9 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Toast
+import com.example.WiFiPasswordSearcher.databinding.ActivityStartBinding
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -26,79 +25,69 @@ import java.net.URLEncoder
  * Created by пк on 20.12.2015.
  */
 class StartActivity : Activity() {
-    private var mSettings: Settings? = null
-    private var User: UserManager? = null
-    var edtLogin: EditText? = null
-    var edtPassword: EditText? = null
-    var btnGetKeys: Button? = null
-    var btnStart: Button? = null
-    var btnUserInfo: Button? = null
-    var llMenu: LinearLayout? = null
+    private lateinit var binding: ActivityStartBinding
+    private lateinit var mSettings: Settings
+    private lateinit var user: UserManager
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.start)
+        binding = ActivityStartBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         onConfigurationChanged(resources.configuration)
         mSettings = Settings(applicationContext)
-        User = UserManager(applicationContext)
-        edtLogin = findViewById(R.id.edtLogin) as EditText
-        edtPassword = findViewById(R.id.edtPassword) as EditText
-        llMenu = findViewById(R.id.llStartMenu) as LinearLayout
-        btnGetKeys = findViewById(R.id.btnGetApiKeys) as Button
-        btnStart = findViewById(R.id.btnStart) as Button
-        btnUserInfo = findViewById(R.id.btnUserInfo) as Button
-        val API_KEYS_VALID = mSettings!!.AppSettings!!.getBoolean(Settings.API_KEYS_VALID, false)
-        val SavedLogin = mSettings!!.AppSettings!!.getString(Settings.APP_SERVER_LOGIN, "")
-        val SavedPassword = mSettings!!.AppSettings!!.getString(Settings.APP_SERVER_PASSWORD, "")
-        val CHECK_UPDATES = mSettings!!.AppSettings!!.getBoolean(Settings.APP_CHECK_UPDATES, true)
-        if (API_KEYS_VALID) {
-            btnGetKeys!!.visibility = View.GONE
-            edtLogin!!.isEnabled = false
-            edtPassword!!.isEnabled = false
-            llMenu!!.visibility = View.VISIBLE
-            if (CHECK_UPDATES && !VersionAlreadyChecked) {
+        user = UserManager(applicationContext)
+        val apiKeysValid = mSettings.AppSettings!!.getBoolean(Settings.API_KEYS_VALID, false)
+        val savedLogin = mSettings.AppSettings!!.getString(Settings.APP_SERVER_LOGIN, "")
+        val savedPassword = mSettings.AppSettings!!.getString(Settings.APP_SERVER_PASSWORD, "")
+        val checkUpdates = mSettings.AppSettings!!.getBoolean(Settings.APP_CHECK_UPDATES, true)
+        if (apiKeysValid) {
+            binding.btnGetApiKeys.visibility = View.GONE
+            binding.edtLogin.isEnabled = false
+            binding.edtPassword.isEnabled = false
+            binding.llStartMenu.visibility = View.VISIBLE
+            if (checkUpdates && !VersionAlreadyChecked) {
                 Thread(Runnable {
-                    val Version = AppVersion(applicationContext)
-                    val Result = Version.isActualyVersion(applicationContext, false)
-                    if (!Result) {
-                        runOnUiThread { Version.ShowUpdateDialog(this@StartActivity) }
+                    val appVersion = AppVersion(applicationContext)
+                    val result = appVersion.isActualyVersion(applicationContext, false)
+                    if (!result) {
+                        runOnUiThread { appVersion.ShowUpdateDialog(this@StartActivity) }
                     }
                     VersionAlreadyChecked = true
                 }).start()
             }
         }
-        edtLogin!!.setText(SavedLogin)
-        edtPassword!!.setText(SavedPassword)
-        btnGetKeys!!.setOnClickListener {
-            val dProccess = ProgressDialog(this@StartActivity)
-            dProccess.setProgressStyle(ProgressDialog.STYLE_SPINNER)
-            dProccess.setMessage(resources.getString(R.string.status_signing_in))
-            dProccess.setCanceledOnTouchOutside(false)
-            dProccess.show()
+        binding.edtLogin.setText(savedLogin)
+        binding.edtPassword.setText(savedPassword)
+        binding.btnGetApiKeys.setOnClickListener {
+            val dProcess = ProgressDialog(this@StartActivity)
+            dProcess.setProgressStyle(ProgressDialog.STYLE_SPINNER)
+            dProcess.setMessage(resources.getString(R.string.status_signing_in))
+            dProcess.setCanceledOnTouchOutside(false)
+            dProcess.show()
             Thread(Runnable {
                 var res = false
                 try {
-                    res = getApiKeys(edtLogin!!.text.toString(), edtPassword!!.text.toString())
+                    res = getApiKeys(binding.edtLogin.text.toString(), binding.edtPassword.text.toString())
                 } catch (e: IOException) {
                     e.printStackTrace()
                 }
                 if (res) {
-                    User!!.fromSettings
+                    user.fromSettings
                     runOnUiThread {
-                        btnGetKeys!!.visibility = View.GONE
-                        llMenu!!.visibility = View.VISIBLE
-                        edtLogin!!.isEnabled = false
-                        edtPassword!!.isEnabled = false
+                        binding.btnGetApiKeys.visibility = View.GONE
+                        binding.llStartMenu.visibility = View.VISIBLE
+                        binding.edtLogin.isEnabled = false
+                        binding.edtPassword.isEnabled = false
                     }
                 }
-                dProccess.dismiss()
+                dProcess.dismiss()
             }).start()
         }
-        btnUserInfo!!.setOnClickListener {
+        binding.btnUserInfo.setOnClickListener {
             val userActivity = Intent(this@StartActivity, UserInfoActivity::class.java)
             userActivity.putExtra("showInfo", "user")
             startActivity(userActivity)
         }
-        btnStart!!.setOnClickListener {
+        binding.btnStart.setOnClickListener {
             val mainActivity = Intent(this@StartActivity, MyActivity::class.java)
             startActivity(mainActivity)
             finish()
@@ -107,81 +96,79 @@ class StartActivity : Activity() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        val LR = findViewById(R.id.rootLayout) as LinearLayout
-        val LP = findViewById(R.id.layoutPadding) as LinearLayout
         if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            LR.orientation = LinearLayout.VERTICAL
-            LP.visibility = View.VISIBLE
+            binding.rootLayout.orientation = LinearLayout.VERTICAL
+            binding.layoutPadding.visibility = View.VISIBLE
         } else if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            LR.orientation = LinearLayout.HORIZONTAL
-            LP.visibility = View.GONE
+            binding.rootLayout.orientation = LinearLayout.HORIZONTAL
+            binding.layoutPadding.visibility = View.GONE
         }
     }
 
     @Throws(IOException::class)
     private fun getApiKeys(Login: String, Password: String): Boolean {
-        val Args = "/api/apikeys"
-        val Reader: BufferedReader
-        var ReadLine: String?
-        val RawData = StringBuilder()
+        val args = "/api/apikeys"
+        val reader: BufferedReader
+        var readLine: String?
+        val rawData = StringBuilder()
         try {
-            mSettings!!.Reload()
-            val SERVER_URI = mSettings!!.AppSettings!!.getString(Settings.APP_SERVER_URI, resources.getString(R.string.SERVER_URI_DEFAULT))!!
-            val Uri = URL(SERVER_URI + Args)
-            val Connection = Uri.openConnection() as HttpURLConnection
-            Connection.requestMethod = "POST"
-            Connection.doOutput = true
-            Connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+            mSettings.Reload()
+            val serverURI = mSettings.AppSettings!!.getString(Settings.APP_SERVER_URI, resources.getString(R.string.SERVER_URI_DEFAULT))!!
+            val uri = URL(serverURI + args)
+            val connection = uri.openConnection() as HttpURLConnection
+            connection.requestMethod = "POST"
+            connection.doOutput = true
+            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
             val writer = DataOutputStream(
-                    Connection.outputStream)
+                    connection.outputStream)
             writer.writeBytes(
                     "login=" + URLEncoder.encode(Login, "UTF-8") +
                             "&password=" + URLEncoder.encode(Password, "UTF-8") +
                             "&genread=1")
-            Connection.readTimeout = 10 * 1000
-            Connection.connect()
-            Reader = BufferedReader(InputStreamReader(Connection.inputStream))
-            while (Reader.readLine().also { ReadLine = it } != null) {
-                RawData.append(ReadLine)
+            connection.readTimeout = 10 * 1000
+            connection.connect()
+            reader = BufferedReader(InputStreamReader(connection.inputStream))
+            while (reader.readLine().also { readLine = it } != null) {
+                rawData.append(readLine)
             }
             try {
-                var ReadApiKey: String? = null
-                var WriteApiKey: String? = null
-                val Json = JSONObject(RawData.toString())
-                val Successes = Json.getBoolean("result")
-                return if (Successes) {
-                    val profile = Json.getJSONObject("profile")
-                    val keys = Json.getJSONArray("data")
+                var readApiKey: String? = null
+                var writeApiKey: String? = null
+                val json = JSONObject(rawData.toString())
+                val successes = json.getBoolean("result")
+                return if (successes) {
+                    val profile = json.getJSONObject("profile")
+                    val keys = json.getJSONArray("data")
                     for (i in 0 until keys.length()) {
                         val keyData = keys.getJSONObject(i)
                         val access = keyData.getString("access")
                         if (access == "read") {
-                            ReadApiKey = keyData.getString("key")
+                            readApiKey = keyData.getString("key")
                         } else if (access == "write") {
-                            WriteApiKey = keyData.getString("key")
+                            writeApiKey = keyData.getString("key")
                         }
-                        if (ReadApiKey != null && WriteApiKey != null) break
+                        if (readApiKey != null && writeApiKey != null) break
                     }
-                    if (ReadApiKey == null) {
+                    if (readApiKey == null) {
                         runOnUiThread {
                             val t = Toast.makeText(applicationContext, resources.getString(R.string.toast_no_api_keys), Toast.LENGTH_SHORT)
                             t.show()
                         }
                         return false
                     }
-                    mSettings!!.Editor!!.putString(Settings.APP_SERVER_LOGIN, Login)
-                    mSettings!!.Editor!!.putString(Settings.APP_SERVER_PASSWORD, Password)
-                    mSettings!!.Editor!!.putString(Settings.API_READ_KEY, ReadApiKey)
-                    mSettings!!.Editor!!.putString(Settings.API_WRITE_KEY, WriteApiKey)
-                    mSettings!!.Editor!!.putBoolean(Settings.API_KEYS_VALID, true)
-                    mSettings!!.Editor!!.putString(Settings.USER_NICK, profile.getString("nick"))
-                    mSettings!!.Editor!!.putString(Settings.USER_REGDATE, profile.getString("regdate"))
-                    mSettings!!.Editor!!.putInt(Settings.USER_GROUP, profile.getInt("level"))
-                    mSettings!!.Editor!!.commit()
+                    mSettings.Editor!!.putString(Settings.APP_SERVER_LOGIN, Login)
+                    mSettings.Editor!!.putString(Settings.APP_SERVER_PASSWORD, Password)
+                    mSettings.Editor!!.putString(Settings.API_READ_KEY, readApiKey)
+                    mSettings.Editor!!.putString(Settings.API_WRITE_KEY, writeApiKey)
+                    mSettings.Editor!!.putBoolean(Settings.API_KEYS_VALID, true)
+                    mSettings.Editor!!.putString(Settings.USER_NICK, profile.getString("nick"))
+                    mSettings.Editor!!.putString(Settings.USER_REGDATE, profile.getString("regdate"))
+                    mSettings.Editor!!.putInt(Settings.USER_GROUP, profile.getInt("level"))
+                    mSettings.Editor!!.commit()
                     true
                 } else {
-                    val error = Json.getString("error")
-                    val errorDesc = User!!.getErrorDesc(error, this)
+                    val error = json.getString("error")
+                    val errorDesc = user.getErrorDesc(error, this)
                     runOnUiThread {
                         val t = Toast.makeText(applicationContext, errorDesc, Toast.LENGTH_SHORT)
                         t.show()
@@ -197,7 +184,7 @@ class StartActivity : Activity() {
         runOnUiThread {
             val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
                 when (which) {
-                    DialogInterface.BUTTON_POSITIVE -> btnOffline(null)
+                    DialogInterface.BUTTON_POSITIVE -> btnOffline()
                     DialogInterface.BUTTON_NEGATIVE -> {
                     }
                 }
@@ -212,9 +199,9 @@ class StartActivity : Activity() {
         return false
     }
 
-    fun btnOffline(view: View?) {
-        mSettings!!.Editor!!.putString(Settings.API_READ_KEY, "offline")
-        mSettings!!.Editor!!.commit()
+    fun btnOffline() {
+        mSettings.Editor!!.putString(Settings.API_READ_KEY, "offline")
+        mSettings.Editor!!.commit()
         val offlineActivityIntent = Intent(this@StartActivity, MyActivity::class.java)
         startActivity(offlineActivityIntent)
     }

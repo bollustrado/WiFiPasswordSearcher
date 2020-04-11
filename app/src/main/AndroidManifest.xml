@@ -43,7 +43,7 @@
                   android:configChanges="keyboardHidden|orientation|screenSize">
             <meta-data android:name="android.support.PARENT_ACTIVITY" android:value="com.example.WiFiPasswordSearcher.SettingsActivity" />
         </activity>
-        <activity android:name="WifiDetails"
+        <activity android:name="WifiDetailsActivity"
                   android:configChanges="keyboardHidden|orientation|screenSize">
             <meta-data android:name="android.support.PARENT_ACTIVITY" android:value="com.example.WiFiPasswordSearcher.SettingsActivity" />
         </activity>

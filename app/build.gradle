@@ -19,6 +19,9 @@ android {
         }
     }
     useLibrary 'org.apache.http.legacy'
+    viewBinding {
+        enabled = true
+    }
 }
 
 dependencies {

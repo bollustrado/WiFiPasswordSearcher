@@ -20,11 +20,10 @@ import android.view.ViewGroup
 import android.widget.*
 import android.widget.AdapterView.OnItemClickListener
 import androidx.appcompat.app.AppCompatActivity
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.example.WiFiPasswordSearcher.databinding.ActivityMainBinding
 import com.larvalabs.svgandroid.SVG
 import com.larvalabs.svgandroid.SVGParser
-import kotlinx.android.synthetic.main.main.*
+import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -36,23 +35,23 @@ import java.net.URL
 import java.util.*
 
 class APData {
-    var BSSID: String? = null
-    var Keys: ArrayList<String>? = null
-    var Generated: ArrayList<Boolean>? = null
-    var WPS: ArrayList<String>? = null
+    var bssid: String? = null
+    var keys: ArrayList<String>? = null
+    var generated: ArrayList<Boolean>? = null
+    var wps: ArrayList<String>? = null
 }
 
 internal class MyScanResult {
-    var BSSID: String? = null
-    var SSID: String? = null
+    var bssid: String? = null
+    var essid: String? = null
     var frequency = 0
     var level = 0
     var capabilities: String? = null
 }
 
 internal class WiFiListSimpleAdapter(private val context: Context, data: List<MutableMap<String, *>?>, resource: Int, from: Array<String>?, to: IntArray?) : SimpleAdapter(context, data, resource, from, to) {
-    private val DataList: List<*>
-    private fun DeleteInTextTags(text: String): String {
+    private val dataList: List<*>
+    private fun deleteInTextTags(text: String): String {
         var text = text
         if (text.length > 2 && text.substring(0, 2) == "*[") {
             val stylePref = text.substring(2, text.indexOf("]*"))
@@ -61,7 +60,7 @@ internal class WiFiListSimpleAdapter(private val context: Context, data: List<Mu
         return text
     }
 
-    private fun ParseInTextTags(txtView: TextView) {
+    private fun parseInTextTags(txtView: TextView) {
         val text = "" + txtView.text
         if (text.length > 2 && text.substring(0, 2) == "*[") {
             val stylePref = text.substring(2, text.indexOf("]*"))
@@ -89,13 +88,12 @@ internal class WiFiListSimpleAdapter(private val context: Context, data: List<Mu
         val view = super.getView(position, convertView, parent)
         val imgSec = view.findViewById<View>(R.id.imgSec) as ImageView
         val imgWPS = view.findViewById<View>(R.id.imgWps) as ImageView
-        val ElemWiFi: HashMap<String, String>
-        ElemWiFi = DataList[position] as HashMap<String, String>
-        val Capability = ElemWiFi["CAPABILITY"]
+        val elemWiFi: HashMap<String, String> = dataList[position] as HashMap<String, String>
+        val capability = elemWiFi["CAPABILITY"]
         imgSec.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
         imgWPS.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
         var svgImg: SVG
-        if (Capability!!.contains("WPA2")) {
+        if (capability!!.contains("WPA2")) {
             var img = SvgImageCache["WPA2"]
             if (img == null) {
                 svgImg = SVGParser.getSVGFromResource(context.resources, R.raw.wpa2_ico)
@@ -103,7 +101,7 @@ internal class WiFiListSimpleAdapter(private val context: Context, data: List<Mu
                 SvgImageCache["WPA2"] = img
             }
             imgSec.setImageDrawable(img)
-        } else if (Capability.contains("WPA")) {
+        } else if (capability.contains("WPA")) {
             var img = SvgImageCache["WPA"]
             if (img == null) {
                 svgImg = SVGParser.getSVGFromResource(context.resources, R.raw.wpa_ico)
@@ -111,7 +109,7 @@ internal class WiFiListSimpleAdapter(private val context: Context, data: List<Mu
                 SvgImageCache["WPA"] = img
             }
             imgSec.setImageDrawable(img)
-        } else if (Capability.contains("WEP")) {
+        } else if (capability.contains("WEP")) {
             var img = SvgImageCache["WEP"]
             if (img == null) {
                 svgImg = SVGParser.getSVGFromResource(context.resources, R.raw.wep_ico)
@@ -128,7 +126,7 @@ internal class WiFiListSimpleAdapter(private val context: Context, data: List<Mu
             }
             imgSec.setImageDrawable(img)
         }
-        if (Capability.contains("WPS")) {
+        if (capability.contains("WPS")) {
             var img = SvgImageCache["WPS"]
             if (img == null) {
                 svgImg = SVGParser.getSVGFromResource(context.resources, R.raw.wps_ico)
@@ -146,13 +144,13 @@ internal class WiFiListSimpleAdapter(private val context: Context, data: List<Mu
         val txtWPS = view.findViewById<View>(R.id.txtWPS) as TextView
         val llKeys = view.findViewById<View>(R.id.llKeys) as LinearLayout
         llKeys.setOnClickListener(onKeyClick)
-        ParseInTextTags(txtKey)
-        ParseInTextTags(txtSignal)
-        ParseInTextTags(txtKeysCount)
-        ParseInTextTags(txtWPS)
+        parseInTextTags(txtKey)
+        parseInTextTags(txtSignal)
+        parseInTextTags(txtKeysCount)
+        parseInTextTags(txtWPS)
         val keysCount = txtKeysCount.text.toString().toInt()
         llKeys.isClickable = keysCount > 1
-        txtRowId.text = Integer.toString(position)
+        txtRowId.text = position.toString()
         return view
     }
 
@@ -161,16 +159,16 @@ internal class WiFiListSimpleAdapter(private val context: Context, data: List<Mu
         val llRow = v.parent.parent as LinearLayout
         val txtRowId = llRow.findViewById<View>(R.id.txtRowId) as TextView
         val rowId = txtRowId.text.toString().toInt()
-        val keys = MyActivity.WiFiKeys!![rowId].Keys
-        val wpss = MyActivity.WiFiKeys!![rowId].WPS
+        val keys = MyActivity.WiFiKeys!![rowId].keys
+        val wpss = MyActivity.WiFiKeys!![rowId].wps
         if (keys!!.size <= 1) return@OnClickListener
         val keysList = arrayOfNulls<String>(keys.size)
         for (i in keysList.indices) {
-            val WPS = wpss!![i]
-            if (WPS.isEmpty()) {
-                keysList[i] = context.getString(R.string.dialog_choose_key_key) + DeleteInTextTags(keys[i])
+            val wps = wpss!![i]
+            if (wps.isEmpty()) {
+                keysList[i] = context.getString(R.string.dialog_choose_key_key) + deleteInTextTags(keys[i])
             } else {
-                keysList[i] = context.getString(R.string.dialog_choose_key_key) + DeleteInTextTags(keys[i]) + context.getString(R.string.dialog_choose_key_wps) + DeleteInTextTags(WPS)
+                keysList[i] = context.getString(R.string.dialog_choose_key_key) + deleteInTextTags(keys[i]) + context.getString(R.string.dialog_choose_key_wps) + deleteInTextTags(wps)
             }
         }
         val dialogBuilder = AlertDialog.Builder(context)
@@ -189,26 +187,26 @@ internal class WiFiListSimpleAdapter(private val context: Context, data: List<Mu
             row = if (rid != rowID) null else break
         }
         if (row == null) return
-        val keys = MyActivity.WiFiKeys!![rowID].Keys
-        val gen = MyActivity.WiFiKeys!![rowID].Generated
-        val wps = MyActivity.WiFiKeys!![rowID].WPS
-        val choosedPassword = keys!![passId]
+        val keys = MyActivity.WiFiKeys!![rowID].keys
+        val gen = MyActivity.WiFiKeys!![rowID].generated
+        val wps = MyActivity.WiFiKeys!![rowID].wps
+        val chosenPassword = keys!![passId]
         val isGen = gen!![passId]
         val curWPS = wps!![passId]
-        val KeyColor: String
+        val keyColor: String
         keys[passId] = keys[0]
-        keys[0] = choosedPassword
+        keys[0] = chosenPassword
         gen[passId] = gen[0]
         gen[0] = isGen
         wps[passId] = wps[0]
         wps[0] = curWPS
         val txtKey = row.findViewById<View>(R.id.KEY) as TextView
-        KeyColor = if (isGen) "*[color:red]*" else "*[color:green]*"
-        txtKey.text = KeyColor + choosedPassword
-        ParseInTextTags(txtKey)
+        keyColor = if (isGen) "*[color:red]*" else "*[color:green]*"
+        txtKey.text = keyColor + chosenPassword
+        parseInTextTags(txtKey)
         val txtWPS = row.findViewById<View>(R.id.txtWPS) as TextView
         txtWPS.text = if (curWPS.isEmpty()) "*[color:gray]*[unknown]" else "*[color:blue]*$curWPS"
-        ParseInTextTags(txtWPS)
+        parseInTextTags(txtWPS)
     }
 
     companion object {
@@ -216,7 +214,7 @@ internal class WiFiListSimpleAdapter(private val context: Context, data: List<Mu
     }
 
     init {
-        DataList = data
+        dataList = data
     }
 }
 
@@ -224,14 +222,15 @@ class MyActivity : AppCompatActivity() {
     /**
      * Called when the activity is first created.
      */
-    private var mSettings: Settings? = null
-    private var User: UserManager? = null
-    private var fabCheckFromBase: FloatingActionButton? = null
-    private var WifiMgr: WifiManager? = null
-    private var LocationMgr: LocationManager? = null
-    private var sClipboard: ClipboardManager? = null
-    protected var lastWiFiClickItem: LinearLayout? = null
-    private var listContextMenuItems = arrayOfNulls<String>(6)
+    private lateinit var binding: ActivityMainBinding
+
+    private lateinit var mSettings: Settings
+    private lateinit var user: UserManager
+    private lateinit var wifiMgr: WifiManager
+    private lateinit var locationMgr: LocationManager
+    private lateinit var sClipboard: ClipboardManager
+    private lateinit var lastWiFiClickItem: LinearLayout
+    private lateinit var listContextMenuItems: Array<String>
 
     private fun refreshNetworkList() {
         if (ScanInProcess) return
@@ -241,28 +240,28 @@ class MyActivity : AppCompatActivity() {
         val list = ArrayList<HashMap<String, String?>>()
         val adapter = SimpleAdapter(context, list, R.layout.row, arrayOf("ESSID", "BSSID"), intArrayOf(R.id.ESSID, R.id.BSSID))
         WiFiList!!.adapter = adapter
-        ScanAndShowWiFi()
+        scanAndShowWiFi()
     }
 
     private val fabCheckFromBaseOnClick = View.OnClickListener {
         if (ScanInProcess) return@OnClickListener
         if (WiFiKeys != null) WiFiKeys!!.clear()
-        val dProccess = ProgressDialog(this@MyActivity)
-        dProccess.setProgressStyle(ProgressDialog.STYLE_SPINNER)
-        dProccess.setMessage(resources.getString(R.string.status_searching))
-        dProccess.setCanceledOnTouchOutside(false)
-        fabCheckFromBase!!.isEnabled = false
-        dProccess.show()
+        val dProcess = ProgressDialog(this@MyActivity)
+        dProcess.setProgressStyle(ProgressDialog.STYLE_SPINNER)
+        dProcess.setMessage(resources.getString(R.string.status_searching))
+        dProcess.setCanceledOnTouchOutside(false)
+        binding.btnCheckFromBase.isEnabled = false
+        dProcess.show()
         Thread(Runnable {
-            CheckFromBase()
-            dProccess.dismiss()
+            checkFromBase()
+            dProcess.dismiss()
         }).start()
     }
 
     val activity: Activity
         get() = this
 
-    private fun GetDataRowsFromLinLay(LinLay: LinearLayout?, Type: String): TextView? {
+    private fun getDataRowsFromLinLay(LinLay: LinearLayout?, Type: String): TextView? {
         when (Type) {
             "BSSID" -> return LinLay!!.findViewById<View>(R.id.BSSID) as TextView
             "ESSID" -> return LinLay!!.findViewById<View>(R.id.ESSID) as TextView
@@ -271,43 +270,43 @@ class MyActivity : AppCompatActivity() {
         return null
     }
 
-    var WiFiListOnClick = OnItemClickListener { parent, linearLayout, position, id ->
+    private var wifiListOnClick = OnItemClickListener { parent, linearLayout, position, id ->
         val item = linearLayout as LinearLayout
         lastWiFiClickItem = item
-        val txtBSSID = GetDataRowsFromLinLay(item, "BSSID")
-        val txtESSID = GetDataRowsFromLinLay(item, "ESSID")
+        val txtBSSID = getDataRowsFromLinLay(item, "BSSID")
+        val txtESSID = getDataRowsFromLinLay(item, "ESSID")
         val dialogBuilder = AlertDialog.Builder(this@MyActivity)
         dialogBuilder.setTitle(if (txtESSID != null) txtESSID.text else "")
-        val ESSDWps = txtESSID?.text?.toString() ?: ""
-        val BSSDWps = txtBSSID?.text?.toString() ?: ""
+        val essdWps = txtESSID?.text?.toString() ?: ""
+        val bssdWps = txtBSSID?.text?.toString() ?: ""
         dialogBuilder.setItems(listContextMenuItems, DialogInterface.OnClickListener { dialog, item ->
             val apdata: APData
-            var NeedToast = false
+            var needToast = false
             val scanResult = WiFiScanResult!![id.toInt()]
             when (item) {
                 0 -> {
-                    val detailsActivityIntent = Intent(this@MyActivity, WifiDetails::class.java)
-                    val WifiInfo = HashMap<String, String?>()
-                    WifiInfo["BSSID"] = scanResult.BSSID
-                    WifiInfo["SSID"] = scanResult.SSID
-                    WifiInfo["Freq"] = Integer.toString(scanResult.frequency)
-                    WifiInfo["Signal"] = Integer.toString(scanResult.level)
-                    WifiInfo["Capabilities"] = scanResult.capabilities
-                    detailsActivityIntent.putExtra("WifiInfo", WifiInfo)
+                    val detailsActivityIntent = Intent(this@MyActivity, WifiDetailsActivity::class.java)
+                    val wifiInfo = HashMap<String, String?>()
+                    wifiInfo["BSSID"] = scanResult.bssid
+                    wifiInfo["SSID"] = scanResult.essid
+                    wifiInfo["Freq"] = Integer.toString(scanResult.frequency)
+                    wifiInfo["Signal"] = Integer.toString(scanResult.level)
+                    wifiInfo["Capabilities"] = scanResult.capabilities
+                    detailsActivityIntent.putExtra("WifiInfo", wifiInfo)
                     startActivity(detailsActivityIntent)
                 }
                 1 -> {
-                    val txtBSSID = GetDataRowsFromLinLay(lastWiFiClickItem, "ESSID")
+                    val txtBSSID = getDataRowsFromLinLay(lastWiFiClickItem, "ESSID")
                     val dataClip: ClipData
                     dataClip = ClipData.newPlainText("text", if (txtBSSID != null) txtBSSID.text else "")
-                    sClipboard!!.setPrimaryClip(dataClip)
-                    NeedToast = true
+                    sClipboard.setPrimaryClip(dataClip)
+                    needToast = true
                 }
                 2 -> {
-                    val txtESSID = GetDataRowsFromLinLay(lastWiFiClickItem, "BSSID")
+                    val txtESSID = getDataRowsFromLinLay(lastWiFiClickItem, "BSSID")
                     val dataClip = ClipData.newPlainText("text", if (txtESSID != null) txtESSID.text else "")
-                    sClipboard!!.setPrimaryClip(dataClip)
-                    NeedToast = true
+                    sClipboard.setPrimaryClip(dataClip)
+                    needToast = true
                 }
                 3 -> run {
                     if (WiFiKeys!!.isEmpty()) {
@@ -318,15 +317,15 @@ class MyActivity : AppCompatActivity() {
                         return@run
                     }
                     apdata = WiFiKeys!![id.toInt()]
-                    if (apdata.Keys!!.size < 1) {
+                    if (apdata.keys!!.size < 1) {
                         val toast = Toast.makeText(applicationContext,
                                 getString(R.string.toast_key_not_found), Toast.LENGTH_SHORT)
                         toast.show()
                         return@OnClickListener
                     }
-                    val dataClip = ClipData.newPlainText("text", apdata.Keys!![0])
-                    sClipboard!!.setPrimaryClip(dataClip)
-                    NeedToast = true
+                    val dataClip = ClipData.newPlainText("text", apdata.keys!![0])
+                    sClipboard.setPrimaryClip(dataClip)
+                    needToast = true
                 }
                 4 -> run {
                     if (WiFiKeys!!.isEmpty()) {
@@ -337,21 +336,21 @@ class MyActivity : AppCompatActivity() {
                         return@run
                     }
                     apdata = WiFiKeys!![id.toInt()]
-                    if (apdata.Keys!!.size < 1) {
+                    if (apdata.keys!!.size < 1) {
                         val toast = Toast.makeText(applicationContext,
                                 getString(R.string.toast_key_not_found), Toast.LENGTH_SHORT)
                         toast.show()
                     }
-                    if (!WifiMgr!!.isWifiEnabled) {
+                    if (!wifiMgr.isWifiEnabled) {
                         val toast = Toast.makeText(applicationContext,
                                 getString(R.string.toast_wifi_disabled), Toast.LENGTH_SHORT)
                         toast.show()
                         return@run
                     }
-                    val list = WifiMgr!!.configuredNetworks
+                    val list = wifiMgr.configuredNetworks
                     var cnt = 0
                     for (wifi in list) {
-                        if (wifi.SSID != null && wifi.SSID == "\"" + scanResult.SSID + "\"") cnt++
+                        if (wifi.SSID != null && wifi.SSID == "\"" + scanResult.essid + "\"") cnt++
                     }
                     if (cnt > 0) {
                         val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
@@ -364,7 +363,7 @@ class MyActivity : AppCompatActivity() {
                         }
                         val builder = AlertDialog.Builder(this@MyActivity)
                         builder.setTitle(getString(R.string.dialog_are_you_sure))
-                                .setMessage(String.format(getString(R.string.dialog_already_stored), scanResult.SSID, cnt))
+                                .setMessage(String.format(getString(R.string.dialog_already_stored), scanResult.essid, cnt))
                                 .setPositiveButton(getString(R.string.dialog_yes), dialogClickListener)
                                 .setNegativeButton(getString(R.string.dialog_no), dialogClickListener).show()
                     } else addNetworkProfile(scanResult, apdata)
@@ -373,7 +372,7 @@ class MyActivity : AppCompatActivity() {
                     if (!scanResult.capabilities!!.contains("WPS")) {
                         val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
                             when (which) {
-                                DialogInterface.BUTTON_POSITIVE -> wpsGenStart(ESSDWps, BSSDWps)
+                                DialogInterface.BUTTON_POSITIVE -> wpsGenStart(essdWps, bssdWps)
                                 DialogInterface.BUTTON_NEGATIVE -> {
                                 }
                             }
@@ -381,15 +380,15 @@ class MyActivity : AppCompatActivity() {
                         }
                         val builder = AlertDialog.Builder(this@MyActivity)
                         builder.setTitle(getString(R.string.dialog_are_you_sure))
-                                .setMessage(String.format(getString(R.string.dialog_wps_disabled), scanResult.SSID))
+                                .setMessage(String.format(getString(R.string.dialog_wps_disabled), scanResult.essid))
                                 .setPositiveButton(getString(R.string.dialog_yes), dialogClickListener)
                                 .setNegativeButton(getString(R.string.dialog_no), dialogClickListener).show()
                         return@run
                     }
-                    wpsGenStart(ESSDWps, BSSDWps)
+                    wpsGenStart(essdWps, bssdWps)
                 }
             }
-            if (NeedToast) {
+            if (needToast) {
                 val toast = Toast.makeText(applicationContext,
                         getString(R.string.toast_copied), Toast.LENGTH_SHORT)
                 toast.show()
@@ -399,17 +398,17 @@ class MyActivity : AppCompatActivity() {
         dialogBuilder.show()
     }
 
-    private fun wpsGenStart(ESSDWps: String, BSSDWps: String) {
+    private fun wpsGenStart(essdWps: String, bssdWps: String) {
         val wpsActivityIntent = Intent(this@MyActivity, WPSActivity::class.java)
-        wpsActivityIntent.putExtra("variable", ESSDWps)
-        wpsActivityIntent.putExtra("variable1", BSSDWps)
+        wpsActivityIntent.putExtra("variable", essdWps)
+        wpsActivityIntent.putExtra("variable1", bssdWps)
         startActivity(wpsActivityIntent)
     }
 
     private fun addNetworkProfile(scanResult: MyScanResult, apdata: APData) {
         val WifiCfg = WifiConfiguration()
-        WifiCfg.BSSID = scanResult.BSSID
-        WifiCfg.SSID = String.format("\"%s\"", scanResult.SSID)
+        WifiCfg.BSSID = scanResult.bssid
+        WifiCfg.SSID = String.format("\"%s\"", scanResult.essid)
         WifiCfg.hiddenSSID = false
         WifiCfg.priority = 1000
         if (scanResult.capabilities!!.contains("WEP")) {
@@ -422,26 +421,17 @@ class MyActivity : AppCompatActivity() {
             WifiCfg.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP)
             WifiCfg.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40)
             WifiCfg.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP104)
-            WifiCfg.wepKeys[0] = String.format("\"%s\"", apdata.Keys!![0])
+            WifiCfg.wepKeys[0] = String.format("\"%s\"", apdata.keys!![0])
             WifiCfg.wepTxKeyIndex = 0
         } else {
-            WifiCfg.preSharedKey = String.format("\"%s\"", apdata.Keys!![0])
+            WifiCfg.preSharedKey = String.format("\"%s\"", apdata.keys!![0])
         }
-        val netId = WifiMgr!!.addNetwork(WifiCfg)
-        val toast: Toast
-        toast = if (netId > -1) {
-            Toast.makeText(applicationContext,
-                    getString(R.string.toast_network_stored), Toast.LENGTH_SHORT)
-        } else {
-            if (WifiMgr!!.isWifiEnabled) {
-                Toast.makeText(applicationContext,
-                        getString(R.string.toast_failed_to_store), Toast.LENGTH_SHORT)
-            } else {
-                Toast.makeText(applicationContext,
-                        getString(R.string.toast_wifi_disabled), Toast.LENGTH_SHORT)
-            }
+        val netId = wifiMgr.addNetwork(WifiCfg)
+        when {
+            netId > -1 -> toast(getString(R.string.toast_network_stored))
+            wifiMgr.isWifiEnabled -> toast(getString(R.string.toast_failed_to_store))
+            else -> toast(getString(R.string.toast_wifi_disabled))
         }
-        toast.show()
     }
 
     public override fun onSaveInstanceState(savedInstanceState: Bundle) {
@@ -455,11 +445,11 @@ class MyActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == WIFI_ENABLE_REQUEST || requestCode == LOCATION_ENABLE_REQUEST) {
-            ScanAndShowWiFi()
+            scanAndShowWiFi()
         }
     }
 
-    private fun ApiDataTest() {
+    private fun apiDataTest() {
         if (!API_KEYS_VALID) {
             runOnUiThread {
                 val t = Toast.makeText(applicationContext, getString(R.string.toast_enter_credentials), Toast.LENGTH_SHORT)
@@ -473,38 +463,37 @@ class MyActivity : AppCompatActivity() {
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         setSupportActionBar(bottomAppBar)
         listContextMenuItems = resources.getStringArray(R.array.menu_network)
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
+
         APP_VERSION = resources.getString(R.string.app_version)
         mSettings = Settings(applicationContext)
-        User = UserManager(applicationContext)
-        API_READ_KEY = mSettings!!.AppSettings!!.getString(Settings.API_READ_KEY, "")
-        API_WRITE_KEY = mSettings!!.AppSettings!!.getString(Settings.API_WRITE_KEY, "")
-        API_KEYS_VALID = mSettings!!.AppSettings!!.getBoolean(Settings.API_KEYS_VALID, false)
-        val WiFiList = findViewById<View>(R.id.WiFiList) as ListView
-        fabCheckFromBase = findViewById(R.id.btnCheckFromBase) as FloatingActionButton
-        val swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout) as SwipeRefreshLayout
-        swipeRefreshLayout?.setOnRefreshListener {
+        user = UserManager(applicationContext)
+        API_READ_KEY = mSettings.AppSettings!!.getString(Settings.API_READ_KEY, "")
+        API_WRITE_KEY = mSettings.AppSettings!!.getString(Settings.API_WRITE_KEY, "")
+        API_KEYS_VALID = mSettings.AppSettings!!.getBoolean(Settings.API_KEYS_VALID, false)
+        binding.swipeRefreshLayout.setOnRefreshListener {
             refreshNetworkList()
             swipeRefreshLayout?.isRefreshing = false
         }
-        WifiMgr = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        LocationMgr = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        wifiMgr = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        locationMgr = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         sClipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        fabCheckFromBase!!.setOnClickListener(fabCheckFromBaseOnClick)
-        WiFiList.onItemClickListener = WiFiListOnClick
+        binding.btnCheckFromBase.setOnClickListener(fabCheckFromBaseOnClick)
+        binding.WiFiList.onItemClickListener = wifiListOnClick
         if (adapter != null) {
-            WiFiList.adapter = adapter
-            fabCheckFromBase!!.isEnabled = true
+            binding.WiFiList.adapter = adapter
+            binding.btnCheckFromBase.isEnabled = true
         }
         if (ScanInProcess) {
             //   if(ScanWiFiReceiverIntent != null) unregisterReceiver(ScanWiFiReceiverIntent);
             //ScanAndShowWiFi();
         }
-        ScanAndShowWiFi()
+        scanAndShowWiFi()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -533,7 +522,7 @@ class MyActivity : AppCompatActivity() {
                 alert.setTitle(getString(R.string.dialog_network_properties))
                 alert.setView(lay)
                 alert.setPositiveButton(getString(R.string.ok)) { dialog, which ->
-                    val detailsActivityIntent = Intent(this@MyActivity, WifiDetails::class.java)
+                    val detailsActivityIntent = Intent(this@MyActivity, WifiDetailsActivity::class.java)
                     val WifiInfo = HashMap<String, String>()
                     WifiInfo["BSSID"] = ebss.text.toString().toLowerCase()
                     WifiInfo["SSID"] = eess.text.toString()
@@ -554,16 +543,16 @@ class MyActivity : AppCompatActivity() {
         return true
     }
 
-    fun Context.toast(message: CharSequence) {
+    private fun Context.toast(message: CharSequence) {
         val toast = Toast.makeText(this, message, Toast.LENGTH_SHORT)
         toast.show()
     }
 
-    fun ScanAndShowWiFi() {
+    private fun scanAndShowWiFi() {
         val comparator = Comparator<MyScanResult> { lhs, rhs -> if (lhs.level < rhs.level) 1 else if (lhs.level == rhs.level) 0 else -1 }
         WiFiScanResult = null
         adapter = null
-        if (!WifiMgr!!.isWifiEnabled) {
+        if (!wifiMgr.isWifiEnabled) {
             val action = android.provider.Settings.ACTION_WIFI_SETTINGS
             val builder = AlertDialog.Builder(this@MyActivity)
             builder.setTitle(getString(R.string.toast_wifi_disabled))
@@ -578,7 +567,7 @@ class MyActivity : AppCompatActivity() {
             alert.show()
             return
         }
-        if (Build.VERSION.SDK_INT > 27 && !LocationMgr!!.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+        if (Build.VERSION.SDK_INT > 27 && !locationMgr.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             val action = android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS
             val builder = AlertDialog.Builder(this@MyActivity)
             builder.setMessage(getString(R.string.dialog_message_location_disabled))
@@ -599,12 +588,12 @@ class MyActivity : AppCompatActivity() {
         dProccess.show()
         ScanWiFiReceiverIntent = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
-                val res = WifiMgr!!.scanResults
+                val res = wifiMgr.scanResults
                 val results: MutableList<MyScanResult> = ArrayList()
                 for (result in res) {
                     val sc = MyScanResult()
-                    sc.BSSID = result.BSSID
-                    sc.SSID = result.SSID
+                    sc.bssid = result.BSSID
+                    sc.essid = result.SSID
                     sc.level = result.level
                     sc.frequency = result.frequency
                     sc.capabilities = result.capabilities
@@ -616,8 +605,8 @@ class MyActivity : AppCompatActivity() {
                 var ElemWiFi: HashMap<String, String?>
                 for (result in results) {
                     ElemWiFi = HashMap()
-                    ElemWiFi["ESSID"] = result.SSID
-                    ElemWiFi["BSSID"] = result.BSSID!!.toUpperCase()
+                    ElemWiFi["ESSID"] = result.essid
+                    ElemWiFi["BSSID"] = result.bssid!!.toUpperCase()
                     ElemWiFi["KEY"] = "*[color:gray]*[no data]"
                     ElemWiFi["WPS"] = "*[color:gray]*[no data]"
                     ElemWiFi["SIGNAL"] = getStrSignal(result.level)
@@ -628,7 +617,7 @@ class MyActivity : AppCompatActivity() {
                 adapter = WiFiListSimpleAdapter(activity, list, R.layout.row, arrayOf("ESSID", "BSSID", "KEY", "WPS", "SIGNAL", "KEYSCOUNT", "CAPABILITY"), intArrayOf(R.id.ESSID, R.id.BSSID, R.id.KEY, R.id.txtWPS, R.id.txtSignal, R.id.txtKeysCount))
                 WiFiList!!.adapter = adapter
                 ScanInProcess = false
-                fabCheckFromBase!!.isEnabled = true
+                binding.btnCheckFromBase.isEnabled = true
                 val toast = Toast.makeText(applicationContext,
                         getString(R.string.toast_scan_complete), Toast.LENGTH_SHORT)
                 toast.show()
@@ -639,62 +628,62 @@ class MyActivity : AppCompatActivity() {
         }
         registerReceiver(ScanWiFiReceiverIntent, IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION))
         ScanInProcess = true
-        fabCheckFromBase!!.isEnabled = false
-        WifiMgr!!.startScan()
+        binding.btnCheckFromBase.isEnabled = false
+        wifiMgr.startScan()
     }
 
-    private fun CheckFromBase() {
+    private fun checkFromBase() {
         var bss = JSONObject()
-        val Reader: BufferedReader
-        var ReadLine: String?
-        val RawData = StringBuilder()
-        val FETCH_ESS: Boolean
+        val reader: BufferedReader
+        var readLine: String?
+        val rawData = StringBuilder()
+        val fetchESS: Boolean
         try {
             val query = JSONObject()
             query.put("key", API_READ_KEY)
             val bssids = JSONArray()
             val essids = JSONArray()
             for (result in WiFiScanResult!!) {
-                bssids.put(result.BSSID)
-                essids.put(result.SSID)
+                bssids.put(result.bssid)
+                essids.put(result.essid)
             }
-            mSettings!!.Reload()
-            FETCH_ESS = mSettings!!.AppSettings!!.getBoolean(Settings.APP_FETCH_ESS, false)
+            mSettings.Reload()
+            fetchESS = mSettings.AppSettings!!.getBoolean(Settings.APP_FETCH_ESS, false)
             query.put("bssid", bssids)
-            if (FETCH_ESS) query.put("essid", essids)
-            val SERVER_URI = mSettings!!.AppSettings!!.getString(Settings.APP_SERVER_URI, resources.getString(R.string.SERVER_URI_DEFAULT))
-            val Uri = URL("$SERVER_URI/api/apiquery")
-            val Connection = Uri.openConnection() as HttpURLConnection
-            Connection.requestMethod = "POST"
-            Connection.doOutput = true
-            Connection.setRequestProperty("Content-Type", "application/json")
+            if (fetchESS) query.put("essid", essids)
+            val serverURI = mSettings.AppSettings!!.getString(Settings.APP_SERVER_URI, resources.getString(R.string.SERVER_URI_DEFAULT))
+            val uri = URL("$serverURI/api/apiquery")
+            val connection = uri.openConnection() as HttpURLConnection
+            connection.requestMethod = "POST"
+            connection.doOutput = true
+            connection.setRequestProperty("Content-Type", "application/json")
             val writer = DataOutputStream(
-                    Connection.outputStream)
+                    connection.outputStream)
             writer.writeBytes(query.toString())
-            Connection.readTimeout = 10 * 1000
-            Connection.connect()
-            Reader = BufferedReader(InputStreamReader(Connection.inputStream))
-            while (Reader.readLine().also { ReadLine = it } != null) {
-                RawData.append(ReadLine)
+            connection.readTimeout = 10 * 1000
+            connection.connect()
+            reader = BufferedReader(InputStreamReader(connection.inputStream))
+            while (reader.readLine().also { readLine = it } != null) {
+                rawData.append(readLine)
             }
             try {
-                val json = JSONObject(RawData.toString())
+                val json = JSONObject(rawData.toString())
                 val ret = json.getBoolean("result")
                 if (!ret) {
                     // API failure
                     val error = json.getString("error")
-                    val errorDesc = User!!.getErrorDesc(error, this)
+                    val errorDesc = user.getErrorDesc(error, this)
                     if (error == "loginfail") {
-                        mSettings!!.Editor!!.putBoolean(Settings.API_KEYS_VALID, false)
-                        mSettings!!.Editor!!.commit()
+                        mSettings.Editor!!.putBoolean(Settings.API_KEYS_VALID, false)
+                        mSettings.Editor!!.commit()
                         API_KEYS_VALID = false
-                        ApiDataTest()
+                        apiDataTest()
                         return
                     }
                     runOnUiThread {
                         val t = Toast.makeText(applicationContext, errorDesc, Toast.LENGTH_SHORT)
                         t.show()
-                        fabCheckFromBase!!.isEnabled = true
+                        binding.btnCheckFromBase.isEnabled = true
                     }
                     return
                 }
@@ -711,7 +700,7 @@ class MyActivity : AppCompatActivity() {
                 runOnUiThread {
                     val t = Toast.makeText(applicationContext, getString(R.string.toast_database_failure), Toast.LENGTH_SHORT)
                     t.show()
-                    fabCheckFromBase!!.isEnabled = true
+                    binding.btnCheckFromBase.isEnabled = true
                 }
                 return
             }
@@ -720,67 +709,67 @@ class MyActivity : AppCompatActivity() {
             runOnUiThread {
                 val t = Toast.makeText(applicationContext, getString(R.string.status_no_internet), Toast.LENGTH_SHORT)
                 t.show()
-                fabCheckFromBase!!.isEnabled = true
+                binding.btnCheckFromBase.isEnabled = true
             }
             return
         }
         val list = ArrayList<HashMap<String, String?>?>()
-        var ElemWiFi: HashMap<String, String?>
-        var KeyColor: String
+        var elemWiFi: HashMap<String, String?>
+        var keyColor: String
         var i = 0
         for (result in WiFiScanResult!!) {
-            val apdata = GetWiFiKeyByBSSID(bss, FETCH_ESS, result.SSID, result.BSSID!!.toUpperCase())
-            ElemWiFi = HashMap()
-            ElemWiFi["ESSID"] = result.SSID
-            ElemWiFi["BSSID"] = result.BSSID!!.toUpperCase()
-            ElemWiFi["SIGNAL"] = getStrSignal(result.level)
-            if (apdata.Keys!!.size < 1) {
-                ElemWiFi["KEY"] = "*[color:gray]*[unknown]"
-                ElemWiFi["KEYSCOUNT"] = "*[color:gray]*" + Integer.toString(apdata.Keys!!.size)
+            val apdata = getWiFiKeyByBSSID(bss, fetchESS, result.essid, result.bssid!!.toUpperCase())
+            elemWiFi = HashMap()
+            elemWiFi["ESSID"] = result.essid
+            elemWiFi["BSSID"] = result.bssid!!.toUpperCase()
+            elemWiFi["SIGNAL"] = getStrSignal(result.level)
+            if (apdata.keys!!.size < 1) {
+                elemWiFi["KEY"] = "*[color:gray]*[unknown]"
+                elemWiFi["KEYSCOUNT"] = "*[color:gray]*" + apdata.keys!!.size.toString()
             } else {
-                KeyColor = if (apdata.Generated!![0]) "*[color:red]*" else "*[color:green]*"
-                ElemWiFi["KEY"] = KeyColor + apdata.Keys!![0]
-                ElemWiFi["KEYSCOUNT"] = "*[color:green]*" + Integer.toString(apdata.Keys!!.size)
+                keyColor = if (apdata.generated!![0]) "*[color:red]*" else "*[color:green]*"
+                elemWiFi["KEY"] = keyColor + apdata.keys!![0]
+                elemWiFi["KEYSCOUNT"] = "*[color:green]*" + apdata.keys!!.size.toString()
             }
-            if (apdata.WPS!!.size < 1 || apdata.WPS!![0].isEmpty()) {
-                ElemWiFi["WPS"] = "*[color:gray]*[unknown]"
+            if (apdata.wps!!.size < 1 || apdata.wps!![0].isEmpty()) {
+                elemWiFi["WPS"] = "*[color:gray]*[unknown]"
             } else {
-                ElemWiFi["WPS"] = "*[color:blue]*" + apdata.WPS!![0]
+                elemWiFi["WPS"] = "*[color:blue]*" + apdata.wps!![0]
             }
-            ElemWiFi["CAPABILITY"] = result.capabilities
-            list.add(ElemWiFi)
+            elemWiFi["CAPABILITY"] = result.capabilities
+            list.add(elemWiFi)
             WiFiKeys!!.add(i, apdata)
             i++
         }
         adapter = WiFiListSimpleAdapter(activity, list, R.layout.row, arrayOf("ESSID", "BSSID", "KEY", "WPS", "SIGNAL", "KEYSCOUNT", "CAPABILITY"), intArrayOf(R.id.ESSID, R.id.BSSID, R.id.KEY, R.id.txtWPS, R.id.txtSignal, R.id.txtKeysCount))
         runOnUiThread(Thread(Runnable {
             WiFiList!!.adapter = adapter
-            fabCheckFromBase!!.isEnabled = true
+            binding.btnCheckFromBase.isEnabled = true
         }
         ))
     }
 
-    fun KeyWPSPairExists(keys: ArrayList<String>, pins: ArrayList<String>, key: String, pin: String): Boolean {
+    private fun keyWPSPairExists(keys: ArrayList<String>, pins: ArrayList<String>, key: String, pin: String): Boolean {
         for (i in keys.indices) {
             if (keys[i] == key && pins[i] == pin) return true
         }
         return false
     }
 
-    fun GetWiFiKeyByBSSID(bss: JSONObject, fetchESS: Boolean, ESSID: String?, BSSID: String): APData {
+    private fun getWiFiKeyByBSSID(bss: JSONObject, fetchESS: Boolean, ESSID: String?, BSSID: String): APData {
         val keys = ArrayList<String>()
         val gen = ArrayList<Boolean>()
         val wpsPins = ArrayList<String>()
         try {
             val `val` = if (fetchESS) "$BSSID|$ESSID" else BSSID
-            val Successes = !bss.isNull(`val`)
-            if (Successes) {
+            val successes = !bss.isNull(`val`)
+            if (successes) {
                 val rows = bss.getJSONArray(`val`)
                 for (i in 0 until rows.length()) {
                     val row = rows.getJSONObject(i)
                     val key = row.getString("key")
                     val wps = row.getString("wps")
-                    if (KeyWPSPairExists(keys, wpsPins, key, wps)) continue
+                    if (keyWPSPairExists(keys, wpsPins, key, wps)) continue
                     keys.add(key)
                     wpsPins.add(wps)
                     gen.add(false)
@@ -790,26 +779,26 @@ class MyActivity : AppCompatActivity() {
             e.printStackTrace()
         }
         if (keys.size == 0) {
-            val PassiveKey = PassiveVulnerabilityTest(ESSID, BSSID)
-            if (!PassiveKey.isEmpty()) {
-                keys.add(PassiveKey)
+            val passiveKey = passiveVulnerabilityTest(ESSID, BSSID)
+            if (!passiveKey.isEmpty()) {
+                keys.add(passiveKey)
                 gen.add(true)
                 wpsPins.add("")
             }
         }
         val apdata = APData()
-        apdata.BSSID = BSSID
-        apdata.Keys = keys
-        apdata.Generated = gen
-        apdata.WPS = wpsPins
+        apdata.bssid = BSSID
+        apdata.keys = keys
+        apdata.generated = gen
+        apdata.wps = wpsPins
         return apdata
     }
 
-    fun PassiveVulnerabilityTest(ESSID: String?, BSSID: String): String {
+    private fun passiveVulnerabilityTest(essid: String?, bssid: String): String {
         var ret = ""
-        if (ESSID!!.length > 9) {
-            if (ESSID.substring(0, 9) == "MGTS_GPON") {
-                ret = BSSID.replace(":", "")
+        if (essid!!.length > 9) {
+            if (essid.substring(0, 9) == "MGTS_GPON") {
+                ret = bssid.replace(":", "")
                 ret = ret.substring(4, 12)
             }
         }
@@ -817,14 +806,14 @@ class MyActivity : AppCompatActivity() {
     }
 
     private fun getStrSignal(Signal: Int): String {
-        var Signal = Signal
-        var Color = ""
-        Signal = (100 + Signal) * 2
-        Signal = Math.min(Math.max(Signal, 0), 100)
-        if (Signal < 48) Color = "*[color:red]*"
-        if (Signal >= 48 && Signal < 65) Color = "*[color:yellow]*"
-        if (Signal >= 65) Color = "*[color:greendark]*"
-        return Color + Integer.toString(Signal) + "%"
+        var signal = Signal
+        var color = ""
+        signal = (100 + signal) * 2
+        signal = Math.max(signal, 0).coerceAtMost(100)
+        if (signal < 48) color = "*[color:red]*"
+        if (signal in 48..64) color = "*[color:yellow]*"
+        if (signal >= 65) color = "*[color:greendark]*"
+        return "$color$signal%"
     }
 
     companion object {

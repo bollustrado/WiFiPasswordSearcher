@@ -5,26 +5,28 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.*
 import android.widget.AdapterView.OnItemClickListener
+import com.example.WiFiPasswordSearcher.databinding.ActivitySettingsBinding
 
 class SettingsActivity : Activity() {
     /**
      * Called when the activity is first created.
      */
+    private lateinit var binding: ActivitySettingsBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.settings)
-        val GeneralListView = findViewById(R.id.SettingsListView) as ListView
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         val strSettingsRows = resources.getStringArray(R.array.strings_settings_rows)
         val adapterSettingsListView = ArrayAdapter(this, android.R.layout.simple_list_item_1, strSettingsRows)
-        GeneralListView.adapter = adapterSettingsListView
-        GeneralListView.onItemClickListener = GeneralListOnClick
+        binding.SettingsListView.adapter = adapterSettingsListView
+        binding.SettingsListView.onItemClickListener = generalListOnClick
     }
 
-    private val GeneralListOnClick = OnItemClickListener { parent, Item, position, id ->
+    private val generalListOnClick = OnItemClickListener { parent, Item, position, id ->
         when (id.toInt()) {
             0 -> {
-                val ServerSettingsIntent = Intent(this@SettingsActivity, ServerSettingsActivity::class.java)
-                startActivity(ServerSettingsIntent)
+                val serverSettingsIntent = Intent(this@SettingsActivity, ServerSettingsActivity::class.java)
+                startActivity(serverSettingsIntent)
             }
             1 -> {
                 val userActivity = Intent(this@SettingsActivity, UserInfoActivity::class.java)
@@ -32,13 +34,13 @@ class SettingsActivity : Activity() {
                 startActivity(userActivity)
             }
             2 -> {
-                val AboutInfoIntent = Intent(this@SettingsActivity, AboutActivity::class.java)
-                startActivity(AboutInfoIntent)
+                val aboutInfoIntent = Intent(this@SettingsActivity, AboutActivity::class.java)
+                startActivity(aboutInfoIntent)
             }
             3 -> {
-                val Version = AppVersion(applicationContext)
-                if (!Version.isActualyVersion(applicationContext, true)) {
-                    Version.ShowUpdateDialog(this@SettingsActivity)
+                val version = AppVersion(applicationContext)
+                if (!version.isActualyVersion(applicationContext, true)) {
+                    version.ShowUpdateDialog(this@SettingsActivity)
                 }
             }
             4 -> {
@@ -50,9 +52,9 @@ class SettingsActivity : Activity() {
                 mSettings.Editor!!.remove(Settings.API_WRITE_KEY)
                 mSettings.Editor!!.remove(Settings.API_KEYS_VALID)
                 mSettings.Editor!!.commit()
-                val StartPage = Intent(applicationContext, StartActivity::class.java)
-                StartPage.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
-                startActivity(StartPage)
+                val startPage = Intent(applicationContext, StartActivity::class.java)
+                startPage.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(startPage)
             }
         }
     }

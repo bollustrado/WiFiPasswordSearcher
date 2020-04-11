@@ -4,14 +4,16 @@ import android.app.Activity
 import android.graphics.Color
 import android.os.Bundle
 import android.util.TypedValue
-import android.webkit.WebView
+import com.example.WiFiPasswordSearcher.databinding.ActivityAboutBinding
 import java.nio.charset.Charset
 
 class AboutActivity : Activity() {
+    private lateinit var binding: ActivityAboutBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.about)
-        val about = findViewById<WebView>(R.id.aboutWeb)
+        binding = ActivityAboutBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         val filename = "about.html"
         var html: String
         html = try {
@@ -28,7 +30,7 @@ class AboutActivity : Activity() {
         val textColor = resources.getColor(if (isColorDark(backColor)) android.R.color.secondary_text_dark else android.R.color.secondary_text_light)
         html = html.replace("#000;", colorToCSS(backColor))
         html = html.replace("#fff;", colorToCSS(textColor))
-        about.loadData(html, "text/html", "UTF-8")
+        binding.aboutWeb.loadData(html, "text/html", "UTF-8")
     }
 
     private fun isColorDark(color: Int): Boolean {

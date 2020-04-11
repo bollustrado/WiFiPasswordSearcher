@@ -22,10 +22,8 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.AdapterView.OnItemClickListener
 import android.widget.EditText
-import android.widget.ListView
-import android.widget.TextView
 import android.widget.Toast
-import com.example.WiFiPasswordSearcher.StartActivity
+import com.example.WiFiPasswordSearcher.databinding.ActivityWpsBinding
 import org.apache.http.client.ResponseHandler
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpPost
@@ -37,20 +35,15 @@ import org.json.JSONObject
 import java.io.IOException
 import java.util.*
 
-class WPSPin {
-    var mode = 0
-    var name: String? = null
-    var pin: String? = null
-    var sugg: Boolean? = null
-}
+data class WPSPin (var mode: Int, var name: String, var pin: String = "", var sugg: Boolean = false)
 
 class WPSActivity : Activity() {
-    private var mWebView: WebView? = null
-    private var WifiMgr: WifiManager? = null
+    private lateinit var binding: ActivityWpsBinding
+    private lateinit var wifiMgr: WifiManager
     var data = ArrayList<ItemWps>()
     var pins = ArrayList<WPSPin>()
-    var pd: ProgressDialog? = null
-    private var mSettings: Settings? = null
+    private lateinit var pd: ProgressDialog
+    private lateinit var mSettings: Settings
     private var wpsCallback: WpsCallback? = null
     private var wpsConnecting = false
     private var wpsLastPin: String? = ""
@@ -58,14 +51,15 @@ class WPSActivity : Activity() {
     var wpsMet = ArrayList<String?>()
     var wpsScore = ArrayList<String>()
     var wpsDb = ArrayList<String>()
-    private var mDb: SQLiteDatabase? = null
+    private lateinit var mDb: SQLiteDatabase
 
     @Volatile
     private var wpsReady = false
     private var cachedPins = ""
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.wps)
+        binding = ActivityWpsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         context = applicationContext
         listContextMenuItems = getResources().getStringArray(R.array.menu_wps_pin)
         val mDBHelper = DatabaseHelper(this)
@@ -82,45 +76,43 @@ class WPSActivity : Activity() {
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
         mSettings = Settings(applicationContext)
-        API_READ_KEY = mSettings!!.AppSettings!!.getString(Settings.API_READ_KEY, "")
-        val ESSDWpsText = findViewById<View>(R.id.ESSDWpsTextView) as TextView
-        val ESSDWps = intent.extras!!.getString("variable")
-        ESSDWpsText.text = ESSDWps // ESSID
-        val BSSDWpsText = findViewById<View>(R.id.BSSDWpsTextView) as TextView
-        val BSSDWps = intent.extras!!.getString("variable1")
-        BSSDWpsText.text = BSSDWps // BSSID
-        WifiMgr = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        API_READ_KEY = mSettings.AppSettings!!.getString(Settings.API_READ_KEY, "")
+        val essdWPS = intent.extras!!.getString("variable")
+        binding.ESSDWpsTextView.text = essdWPS // ESSID
+        val bssdWPS = intent.extras!!.getString("variable1")
+        binding.BSSDWpsTextView.text = bssdWPS // BSSID
+        wifiMgr = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         wpsCallback = null
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             wpsCallback = object : WpsCallback() {
                 override fun onStarted(pin: String) {
                     wpsConnecting = true
                     pd = ProgressDialog(this@WPSActivity)
-                    pd!!.setProgressStyle(ProgressDialog.STYLE_SPINNER)
-                    pd!!.setMessage(getString(R.string.status_connecting_to_the_network))
-                    pd!!.setCanceledOnTouchOutside(false)
-                    pd!!.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.cancel)) { dialog, which ->
+                    pd.setProgressStyle(ProgressDialog.STYLE_SPINNER)
+                    pd.setMessage(getString(R.string.status_connecting_to_the_network))
+                    pd.setCanceledOnTouchOutside(false)
+                    pd.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.cancel)) { dialog, which ->
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            WifiMgr!!.cancelWps(wpsCallback)
+                            wifiMgr.cancelWps(wpsCallback)
                         }
                         wpsConnecting = false
                         dialog.dismiss()
                         Toast.makeText(applicationContext, getString(R.string.toast_connection_canceled), Toast.LENGTH_SHORT).show()
                     }
-                    pd!!.show()
+                    pd.show()
                 }
 
                 override fun onSucceeded() {
                     if (!wpsConnecting) return
                     wpsConnecting = false
-                    pd!!.dismiss()
+                    pd.dismiss()
                     Toast.makeText(applicationContext, getString(R.string.toast_connected_successfully), Toast.LENGTH_SHORT).show()
                 }
 
                 override fun onFailed(reason: Int) {
                     if (!wpsConnecting && reason > 2) return
                     wpsConnecting = false
-                    pd!!.dismiss()
+                    pd.dismiss()
                     var title = getString(R.string.dialog_title_error_occurred)
                     val errorMessage: String
                     when (reason) {
@@ -155,35 +147,33 @@ class WPSActivity : Activity() {
                 }
             }
         }
-        val wpslist = findViewById<View>(R.id.WPSlist) as ListView
-        wpslist.onItemClickListener = OnItemClickListener { parent, itemClicked, position, id -> ShowMenu(BSSDWps, wpsPin[position]) }
-        mWebView = findViewById<View>(R.id.webView) as WebView
-        mWebView!!.addJavascriptInterface(myJavascriptInterface(), "JavaHandler")
-        mWebView!!.webViewClient = object : WebViewClient() {
+        binding.WPSlist.onItemClickListener = OnItemClickListener { parent, itemClicked, position, id -> showMenu(bssdWPS, wpsPin[position]) }
+        binding.webView.addJavascriptInterface(myJavascriptInterface(), "JavaHandler")
+        binding.webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView, url: String) {
                 super.onPageFinished(view, url)
                 val BSSDWps = intent.extras!!.getString("variable1")
-                mWebView!!.loadUrl("javascript:initAlgos();window.JavaHandler.initAlgos(JSON.stringify(algos),'$BSSDWps');")
+                binding.webView.loadUrl("javascript:initAlgos();window.JavaHandler.initAlgos(JSON.stringify(algos),'$BSSDWps');")
             }
         }
-        mWebView!!.settings.javaScriptEnabled = true
+        binding.webView.settings.javaScriptEnabled = true
         val wpspin = AppVersion(applicationContext)
         wpspin.wpsCompanionInit(false)
         var path = wpspin.wpsCompanionGetPath()
         if (path == null) path = "/android_asset/wpspin.html"
-        mWebView!!.loadUrl("file://$path")
-        AsyncInitActivity().execute(BSSDWps)
+        binding.webView.loadUrl("file://$path")
+        AsyncInitActivity().execute(bssdWPS)
     }
 
-    private fun ShowMenu(BSSID: String?, pin: String?) {
+    private fun showMenu(BSSID: String?, pin: String?) {
         val dialogBuilder = AlertDialog.Builder(this@WPSActivity)
         var spin = pin
-        if (spin!!.length == 0) spin = "<empty>"
+        if (spin!!.isEmpty()) spin = "<empty>"
         dialogBuilder.setTitle(getString(R.string.selected_pin) + spin)
         dialogBuilder.setItems(listContextMenuItems) { dialog, item ->
             when (item) {
                 0 -> {
-                    if (!WifiMgr!!.isWifiEnabled) {
+                    if (!wifiMgr.isWifiEnabled) {
                         val toast = Toast.makeText(applicationContext,
                                 getString(R.string.toast_wifi_disabled), Toast.LENGTH_SHORT)
                         toast.show()
@@ -194,7 +184,7 @@ class WPSActivity : Activity() {
                         wpsInfo.pin = pin
                         wpsInfo.setup = WpsInfo.KEYPAD
                         wpsLastPin = pin
-                        WifiMgr!!.startWps(wpsInfo, wpsCallback)
+                        wifiMgr.startWps(wpsInfo, wpsCallback)
                     } else {
                         val builder = AlertDialog.Builder(this@WPSActivity)
                         builder.setTitle(getString(R.string.dialog_title_unsupported_android))
@@ -251,13 +241,12 @@ class WPSActivity : Activity() {
 
         override fun onPostExecute(response2: String) {
             var response2 = response2
-            val src = mSettings!!.AppSettings!!.getInt(Settings.WPS_SOURCE, 1)
-            if (src != 1) pd!!.dismiss()
-            val VendorWpsText = findViewById<View>(R.id.VendorWpsTextView) as TextView
+            val src = mSettings.AppSettings!!.getInt(Settings.WPS_SOURCE, 1)
+            if (src != 1) pd.dismiss()
             if (response2.length > 50) {
                 response2 = "unknown vendor"
             }
-            VendorWpsText.text = response2
+            binding.VendorWpsTextView.text = response2
             when (src) {
                 1 -> btnwpsbaseclick(null)
                 2 -> btnGenerate(null)
@@ -270,8 +259,8 @@ class WPSActivity : Activity() {
         override fun onPreExecute() {
             super.onPreExecute()
             val msg = getString(R.string.status_getting_pins)
-            if (pd!!.isShowing) {
-                pd!!.setMessage(msg)
+            if (pd.isShowing) {
+                pd.setMessage(msg)
             } else {
                 pd = ProgressDialog.show(this@WPSActivity, getString(R.string.status_please_wait), msg)
             }
@@ -287,9 +276,9 @@ class WPSActivity : Activity() {
             wpsMet.clear()
             val hc = DefaultHttpClient()
             val res: ResponseHandler<String> = BasicResponseHandler()
-            mSettings!!.Reload()
-            val SERVER_URI = mSettings!!.AppSettings!!.getString(Settings.APP_SERVER_URI, resources.getString(R.string.SERVER_URI_DEFAULT))
-            val http = HttpGet("$SERVER_URI/api/apiwps?key=$API_READ_KEY&bssid=$BSSID")
+            mSettings.Reload()
+            val serverURI = mSettings.AppSettings!!.getString(Settings.APP_SERVER_URI, resources.getString(R.string.SERVER_URI_DEFAULT))
+            val http = HttpGet("$serverURI/api/apiwps?key=$API_READ_KEY&bssid=$BSSID")
             try {
                 response = if (cachedPins.isEmpty()) hc.execute(http, res) else cachedPins
                 try {
@@ -316,8 +305,8 @@ class WPSActivity : Activity() {
                     } else {
                         val error = jObject.getString("error")
                         if (error == "loginfail") {
-                            mSettings!!.Editor!!.putBoolean(Settings.API_KEYS_VALID, false)
-                            mSettings!!.Editor!!.commit()
+                            mSettings.Editor!!.putBoolean(Settings.API_KEYS_VALID, false)
+                            mSettings.Editor!!.commit()
                             runOnUiThread {
                                 val t = Toast.makeText(applicationContext, getString(R.string.toast_enter_credentials), Toast.LENGTH_SHORT)
                                 t.show()
@@ -338,39 +327,43 @@ class WPSActivity : Activity() {
         }
 
         override fun onPostExecute(str: String) {
-            pd!!.dismiss()
-            val wpslist = findViewById<View>(R.id.WPSlist) as ListView
+            pd.dismiss()
             var msg = ""
             var toast = true
-            if (str == "http_error") {
-                msg = getString(R.string.status_no_internet)
-                toast = false
-            } else if (str == "json_error") {
-                msg = getString(R.string.connection_failure)
-                toast = false
-            } else if (str == "api_error") {
-                msg = getString(R.string.toast_database_failure)
-                toast = false
-            } else if (data.isEmpty()) {
-                msg = getString(R.string.toast_no_pins_found)
+            when {
+                str == "http_error" -> {
+                    msg = getString(R.string.status_no_internet)
+                    toast = false
+                }
+                str == "json_error" -> {
+                    msg = getString(R.string.connection_failure)
+                    toast = false
+                }
+                str == "api_error" -> {
+                    msg = getString(R.string.toast_database_failure)
+                    toast = false
+                }
+                data.isEmpty() -> {
+                    msg = getString(R.string.toast_no_pins_found)
+                }
             }
-            if (msg.length > 0) {
+            if (msg.isNotEmpty()) {
                 data.add(ItemWps(null, msg, null, null))
             }
-            wpslist.isEnabled = msg.length == 0
-            wpslist.adapter = MyAdapterWps(this@WPSActivity, data)
+            binding.WPSlist.isEnabled = msg.isEmpty()
+            binding.WPSlist.adapter = MyAdapterWps(this@WPSActivity, data)
             if (toast) toastMessage(String.format(getString(R.string.selected_source), "3WiFi Online WPS PIN"))
         }
     }
 
     fun btnwpsbaseclick(view: View?) { //пины из базы
-        findViewById<View>(R.id.baseButton).background.setColorFilter(Color.parseColor("#1cd000"), PorterDuff.Mode.MULTIPLY)
-        findViewById<View>(R.id.wpsButton1).background.clearColorFilter()
-        findViewById<View>(R.id.wpsButton2).background.clearColorFilter()
-        mSettings!!.Editor!!.putInt(Settings.WPS_SOURCE, 1)
-        mSettings!!.Editor!!.commit()
-        val BSSDWps = intent.extras!!.getString("variable1")
-        GetPinsFromBase().execute(BSSDWps)
+        binding.baseButton.background.setColorFilter(Color.parseColor("#1cd000"), PorterDuff.Mode.MULTIPLY)
+        binding.wpsButton1.background.clearColorFilter()
+        binding.wpsButton2.background.clearColorFilter()
+        mSettings.Editor!!.putInt(Settings.WPS_SOURCE, 1)
+        mSettings.Editor!!.commit()
+        val bssdWPS = intent.extras!!.getString("variable1")
+        GetPinsFromBase().execute(bssdWPS)
     }
 
     private inner class myJavascriptInterface {
@@ -381,12 +374,14 @@ class WPSActivity : Activity() {
                 val arr = JSONArray(json)
                 for (i in 0 until arr.length()) {
                     val obj = arr.getJSONObject(i)
-                    val pin = WPSPin()
-                    pin.mode = obj.getInt("mode")
-                    pin.name = obj.getString("name")
+                    val pin = WPSPin(mode=obj.getInt("mode"), name=obj.getString("name"))
                     pins.add(pin)
                 }
-                mWebView!!.loadUrl("javascript:window.JavaHandler.getPins(1,JSON.stringify(pinSuggestAPI(true,'$bssid',null)), '$bssid');")
+                binding.webView.post(Runnable {
+                    fun run() {
+                        binding.webView.loadUrl("javascript:window.JavaHandler.getPins(1,JSON.stringify(pinSuggestAPI(true,'$bssid',null)), '$bssid');")
+                    }
+                })
             } catch (e: JSONException) {
                 wpsReady = true
             }
@@ -407,7 +402,7 @@ class WPSActivity : Activity() {
                         pin.sugg = true
                     }
                 }
-                if (all > 0) mWebView!!.loadUrl("javascript:window.JavaHandler.getPins(0,JSON.stringify(pinSuggestAPI(false,'$bssid',null)), '');") else wpsReady = true
+                if (all > 0) binding.webView.loadUrl("javascript:window.JavaHandler.getPins(0,JSON.stringify(pinSuggestAPI(false,'$bssid',null)), '');") else wpsReady = true
             } catch (e: JSONException) {
                 pins.clear()
                 wpsReady = true
@@ -416,18 +411,17 @@ class WPSActivity : Activity() {
     }
 
     fun btnGenerate(view: View?) { //генераторpppppp
-        findViewById<View>(R.id.wpsButton1).background.setColorFilter(Color.parseColor("#1cd000"), PorterDuff.Mode.MULTIPLY)
-        findViewById<View>(R.id.baseButton).background.clearColorFilter()
-        findViewById<View>(R.id.wpsButton2).background.clearColorFilter()
-        mSettings!!.Editor!!.putInt(Settings.WPS_SOURCE, 2)
-        mSettings!!.Editor!!.commit()
-        val wpslist = findViewById<View>(R.id.WPSlist) as ListView
-        wpslist.adapter = null
+        binding.wpsButton1.background.setColorFilter(Color.parseColor("#1cd000"), PorterDuff.Mode.MULTIPLY)
+        binding.baseButton.background.clearColorFilter()
+        binding.wpsButton2.background.clearColorFilter()
+        mSettings.Editor!!.putInt(Settings.WPS_SOURCE, 2)
+        mSettings.Editor!!.commit()
+        binding.WPSlist.adapter = null
         wpsPin.clear()
         wpsMet.clear()
         data.clear()
         for (pin in pins) {
-            if (!pin.sugg!!) continue
+            if (!pin.sugg) continue
             wpsPin.add(pin.pin)
             wpsMet.add(pin.name)
             data.add(ItemWps(
@@ -438,7 +432,7 @@ class WPSActivity : Activity() {
             ))
         }
         for (pin in pins) {
-            if (pin.sugg!!) continue
+            if (pin.sugg) continue
             wpsPin.add(pin.pin)
             wpsMet.add(pin.name)
             data.add(ItemWps(
@@ -448,42 +442,37 @@ class WPSActivity : Activity() {
                     ""
             ))
         }
-        wpslist.isEnabled = pins.size > 0
-        wpslist.adapter = MyAdapterWps(this@WPSActivity, data)
+        binding.WPSlist.isEnabled = pins.size > 0
+        binding.WPSlist.adapter = MyAdapterWps(this@WPSActivity, data)
         toastMessage(String.format(getString(R.string.selected_source), "WPS PIN Companion"))
     }
 
     private fun findAlgoByPin(pin: String?): Int {
-        var i = 0
-        for (p in pins) {
+        for ((i, p) in pins.withIndex()) {
             if (pin == p.pin) return i
-            i++
         }
         return -1
     }
 
     private fun findAlgoByName(name: String): Int {
-        var i = 0
-        for (p in pins) {
+        for ((i, p) in pins.withIndex()) {
             if (name == p.name) return i
-            i++
         }
         return -1
     }
 
     fun btnLocalClick(view: View?) { //локальная база
-        findViewById<View>(R.id.wpsButton2).background.setColorFilter(Color.parseColor("#1cd000"), PorterDuff.Mode.MULTIPLY)
-        findViewById<View>(R.id.wpsButton1).background.clearColorFilter()
-        findViewById<View>(R.id.baseButton).background.clearColorFilter()
-        mSettings!!.Editor!!.putInt(Settings.WPS_SOURCE, 3)
-        mSettings!!.Editor!!.commit()
-        val wpslist = findViewById<View>(R.id.WPSlist) as ListView
-        wpslist.adapter = null
-        val BSSDWps = intent.extras!!.getString("variable1")
+        binding.wpsButton2.background.setColorFilter(Color.parseColor("#1cd000"), PorterDuff.Mode.MULTIPLY)
+        binding.wpsButton1.background.clearColorFilter()
+        binding.baseButton.background.clearColorFilter()
+        mSettings.Editor!!.putInt(Settings.WPS_SOURCE, 3)
+        mSettings.Editor!!.commit()
+        binding.WPSlist.adapter = null
+        val bssdWPS = intent.extras!!.getString("variable1")
         try {
             data.clear()
             wpsPin.clear()
-            val cursor = mDb!!.rawQuery("SELECT * FROM pins WHERE mac='" + BSSDWps!!.substring(0, 8) + "'", null)
+            val cursor = mDb.rawQuery("SELECT * FROM pins WHERE mac='" + bssdWPS!!.substring(0, 8) + "'", null)
             cursor.moveToFirst()
             do {
                 var p = cursor.getString(0)
@@ -515,12 +504,12 @@ class WPSActivity : Activity() {
                 wpsPin.add(p)
             } while (cursor.moveToNext())
             cursor.close()
-            wpslist.isEnabled = true
+            binding.WPSlist.isEnabled = true
         } catch (e: Exception) {
             data.add(ItemWps(null, getString(R.string.toast_no_pins_found), null, null))
-            wpslist.isEnabled = false
+            binding.WPSlist.isEnabled = false
         }
-        wpslist.adapter = MyAdapterWps(this@WPSActivity, data)
+        binding.WPSlist.adapter = MyAdapterWps(this@WPSActivity, data)
         toastMessage(String.format(getString(R.string.selected_source), "WPA WPS TESTER"))
     }
 
@@ -531,9 +520,9 @@ class WPSActivity : Activity() {
         input.inputType = InputType.TYPE_CLASS_TEXT
         alert.setView(input)
         alert.setPositiveButton(getString(R.string.ok)) { dialog, which ->
-            val BSSDWps = intent.extras!!.getString("variable1")
+            val bssdWPS = intent.extras!!.getString("variable1")
             val pin = input.text.toString()
-            ShowMenu(BSSDWps, pin)
+            showMenu(bssdWPS, pin)
         }
         alert.setNegativeButton(getString(R.string.cancel)) { dialog, which -> dialog.cancel() }
         alert.show()

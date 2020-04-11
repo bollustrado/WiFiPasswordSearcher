@@ -8,19 +8,19 @@ import android.content.Context
 internal class UserManager(context: Context) {
     private val mSettings: Settings
     @JvmField
-    var NickName = ""
+    var nickName = ""
     @JvmField
-    var RegDate = ""
-    private var Level = -1
+    var regDate = ""
+    private var level = -1
     val fromSettings: Unit
         get() {
-            NickName = mSettings.AppSettings!!.getString(Settings.USER_NICK, "")!!
-            RegDate = mSettings.AppSettings!!.getString(Settings.USER_REGDATE, "")!!
-            Level = mSettings.AppSettings!!.getInt(Settings.USER_GROUP, -1)
+            nickName = mSettings.AppSettings!!.getString(Settings.USER_NICK, "")!!
+            regDate = mSettings.AppSettings!!.getString(Settings.USER_REGDATE, "")!!
+            level = mSettings.AppSettings!!.getInt(Settings.USER_GROUP, -1)
         }
 
     fun getGroup(context: Context): String {
-        return getTextGroup(Level, context)
+        return getTextGroup(level, context)
     }
 
     private fun getTextGroup(Level: Int, context: Context): String {

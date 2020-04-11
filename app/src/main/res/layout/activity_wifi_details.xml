@@ -59,13 +59,12 @@
 
 	</LinearLayout>
 
-	<LinearLayout
+	<com.jjoe64.graphview.GraphView
 		android:orientation="vertical"
 		android:layout_width="match_parent"
 		android:layout_height="fill_parent"
-		android:id="@+id/llGrphView">
+		android:id="@+id/signalGraph">
 
-	</LinearLayout>
+	</com.jjoe64.graphview.GraphView>
 
 </LinearLayout>
-
